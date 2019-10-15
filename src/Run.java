@@ -28,6 +28,8 @@ public class Run {
         System.out.println("\t\t 4 RHEA 200 itereations, shift buffer, pop size 1, random init, length: 12");
         System.out.println("\t\t 5 MCTS 200 iterations, length: 12");
         System.out.println("\t\t 6 Human Player (controls: cursor keys + space bar).");
+        System.out.println("\t\t 7 Saaf Player");
+
     }
 
     public static void main(String[] args) {
@@ -140,6 +142,10 @@ public class Run {
                             p = new HumanPlayer(kc, playerID++);
                             playerStr[i-4] = "HumanPlayer";
                         }
+                        break;
+                    case 7:
+                        p = new SaafPlayer(seed, playerID++);
+                        playerStr[i-4] = "Saaf";
                         break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );

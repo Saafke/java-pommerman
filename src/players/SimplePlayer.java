@@ -176,7 +176,7 @@ public class SimplePlayer extends Player {
             }
         }
         if (distance <= 2){
-            // iterate until we get to the immadiate next node
+            // iterate until we get to the immediate next node
             if (myPosition.equals(previousNode)){
                 return directionToAction(getDirection(myPosition, previousNode));
             }

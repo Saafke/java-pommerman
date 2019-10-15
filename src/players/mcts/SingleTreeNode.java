@@ -102,6 +102,7 @@ public class SingleTreeNode
         //System.out.println(" ITERS " + numIters);
     }
 
+    // Node selection
     private SingleTreeNode treePolicy(GameState state) {
 
         SingleTreeNode cur = this;
@@ -119,14 +120,17 @@ public class SingleTreeNode
         return cur;
     }
 
-
+    // Expansion
     private SingleTreeNode expand(GameState state) {
 
         int bestAction = 0;
         double bestValue = -1;
 
+        //loop over all children - possible actions
         for (int i = 0; i < children.length; i++) {
+            //get a random double between 0 and 1
             double x = m_rnd.nextDouble();
+
             if (x > bestValue && children[i] == null) {
                 bestAction = i;
                 bestValue = x;
@@ -164,6 +168,7 @@ public class SingleTreeNode
 
     }
 
+    // Upper bound policy UCB1
     private SingleTreeNode uct(GameState state) {
         SingleTreeNode selected = null;
         double bestValue = -Double.MAX_VALUE;
@@ -197,6 +202,7 @@ public class SingleTreeNode
         return selected;
     }
 
+    // Simulation - rollout
     private double rollOut(GameState state)
     {
         int thisDepth = this.m_depth;
@@ -210,6 +216,7 @@ public class SingleTreeNode
         return rootStateHeuristic.evaluateState(state);
     }
 
+    // Get a random action that does not kill itself.
     private int safeRandomAction(GameState state)
     {
         Types.TILETYPE[][] board = state.getBoard();
@@ -250,6 +257,7 @@ public class SingleTreeNode
         return false;
     }
 
+    // Back Propagation
     private void backUp(SingleTreeNode node, double result)
     {
         SingleTreeNode n = node;
