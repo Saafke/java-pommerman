@@ -61,8 +61,6 @@ public class Run {
             if(Integer.parseInt(args[0]) == 1)
                 gMode = Types.GAME_MODE.TEAM;
 
-
-
             int S = Integer.parseInt(args[1]);
             int N = Integer.parseInt(args[2]);
             Types.DEFAULT_VISION_RANGE = Integer.parseInt(args[3]);
