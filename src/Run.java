@@ -29,6 +29,7 @@ public class Run {
         System.out.println("\t\t 5 MCTS 200 iterations, length: 12");
         System.out.println("\t\t 6 Human Player (controls: cursor keys + space bar).");
         System.out.println("\t\t 7 Saaf Player");
+        System.out.println("\t\t 8 GroupX");
 
     }
 
@@ -36,7 +37,7 @@ public class Run {
 
         //default
         if(args.length == 0)
-            args = new String[]{"0", "1", "1", "-1", "2", "3", "4", "5"};
+            args = new String[]{"0", "5", "5", "-1", "4", "4", "5", "8"};
 
         if(args.length != 8) {
             printHelp();
@@ -146,6 +147,10 @@ public class Run {
                     case 7:
                         p = new SaafPlayer(seed, playerID++);
                         playerStr[i-4] = "Saaf";
+                        break;
+                    case 8:
+                        p = new GroupXPlayer(seed, playerID++);
+                        playerStr[i-4] = "GroupX";
                         break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );

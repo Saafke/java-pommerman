@@ -40,7 +40,6 @@ public class Test {
         //players.add(new HumanPlayer(ki1, playerID++));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         //players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-
 //        players.add(new SimplePlayer(seed, playerID++));
         //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
         players.add(new SimplePlayer(seed, playerID++));
