@@ -59,4 +59,5 @@ public abstract class Player {
     }
 
     public abstract Player copy();
+
 }

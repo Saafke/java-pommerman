@@ -2,6 +2,9 @@ import core.Game;
 import players.*;
 import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
+import players.groupx.GroupXParams;
+import players.groupx.GroupXPlayer;
+
 import players.rhea.RHEAPlayer;
 import players.rhea.utils.Constants;
 import players.rhea.utils.RHEAParams;
@@ -37,7 +40,7 @@ public class Run {
 
         //default
         if(args.length == 0)
-            args = new String[]{"0", "5", "5", "-1", "4", "4", "5", "8"};
+            args = new String[]{"0", "2", "5", "-1", "3", "4", "5", "8"};
 
         if(args.length != 8) {
             printHelp();
@@ -215,13 +218,17 @@ public class Run {
     }
 
     public static void runGames(Game g, long seeds[], int repetitions, boolean useSeparateThreads){
+        // Maps : surroundings (as int) -> Array,size 6 of frequencies of each action
         int numPlayers = g.getPlayers().size();
         int[] winCount = new int[numPlayers];
         int[] tieCount = new int[numPlayers];
         int[] lossCount = new int[numPlayers];
+
+
+
         int numSeeds = seeds.length;
         int totalNgames = numSeeds * repetitions;
-
+        // Iterate through each level
         for(int s = 0; s<numSeeds; s++) {
 
             for (int i = 0; i < repetitions; i++) {

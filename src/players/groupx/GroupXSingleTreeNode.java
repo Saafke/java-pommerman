@@ -1,4 +1,4 @@
-package players.mcts;
+package players.groupx;
 
 import core.GameState;
 import players.heuristics.AdvancedHeuristic;
@@ -12,12 +12,12 @@ import utils.Vector2d;
 import java.util.ArrayList;
 import java.util.Random;
 // MB: BRANCH
-public class SingleTreeNode
+public class GroupXSingleTreeNode
 {
-    public MCTSParams params;
+    public GroupXParams params;
 
-    private SingleTreeNode parent;
-    private SingleTreeNode[] children;
+    private GroupXSingleTreeNode parent;
+    private GroupXSingleTreeNode[] children;
     private double totValue;
     private int nVisits;
     private Random m_rnd;
@@ -32,11 +32,11 @@ public class SingleTreeNode
     private GameState rootState;
     private StateHeuristic rootStateHeuristic;
 
-    SingleTreeNode(MCTSParams p, Random rnd, int num_actions, Types.ACTIONS[] actions) {
+    GroupXSingleTreeNode(GroupXParams p, Random rnd, int num_actions, Types.ACTIONS[] actions) {
         this(p, null, -1, rnd, num_actions, actions, 0, null);
     }
 
-    private SingleTreeNode(MCTSParams p, SingleTreeNode parent, int childIdx, Random rnd, int num_actions,
+    private GroupXSingleTreeNode(GroupXParams p, GroupXSingleTreeNode parent, int childIdx, Random rnd, int num_actions,
                            Types.ACTIONS[] actions, int fmCallsCount, StateHeuristic sh) {
         this.params = p;
         this.fmCallsCount = fmCallsCount;
@@ -44,7 +44,7 @@ public class SingleTreeNode
         this.m_rnd = rnd;
         this.num_actions = num_actions;
         this.actions = actions;
-        children = new SingleTreeNode[num_actions];
+        children = new GroupXSingleTreeNode[num_actions];
         totValue = 0.0;
         this.childIdx = childIdx;
         if(parent != null) {
@@ -79,7 +79,7 @@ public class SingleTreeNode
 
             GameState state = rootState.copy();
             ElapsedCpuTimer elapsedTimerIteration = new ElapsedCpuTimer();
-            SingleTreeNode selected = treePolicy(state);
+            GroupXSingleTreeNode selected = treePolicy(state);
             double delta = selected.rollOut(state);
             backUp(selected, delta);
 
@@ -103,9 +103,9 @@ public class SingleTreeNode
     }
 
     // Node selection
-    private SingleTreeNode treePolicy(GameState state) {
+    private GroupXSingleTreeNode treePolicy(GameState state) {
 
-        SingleTreeNode cur = this;
+        GroupXSingleTreeNode cur = this;
 
         while (!state.isTerminal() && cur.m_depth < params.rollout_depth)
         {
@@ -121,7 +121,7 @@ public class SingleTreeNode
     }
 
     // Expansion
-    private SingleTreeNode expand(GameState state) {
+    private GroupXSingleTreeNode expand(GameState state) {
 
         int bestAction = 0;
         double bestValue = -1;
@@ -140,7 +140,7 @@ public class SingleTreeNode
         //Roll the state
         roll(state, actions[bestAction]);
 
-        SingleTreeNode tn = new SingleTreeNode(params,this,bestAction,this.m_rnd,num_actions,
+        GroupXSingleTreeNode tn = new GroupXSingleTreeNode(params,this,bestAction,this.m_rnd,num_actions,
                 actions, fmCallsCount, rootStateHeuristic);
         children[bestAction] = tn;
         return tn;
@@ -159,20 +159,20 @@ public class SingleTreeNode
             {
                 actionsAll[i] = act;
             }else {
-                // MB: Stick the opponenet model
                 int actionIdx = m_rnd.nextInt(gs.nActions());
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
+
         gs.next(actionsAll);
 
     }
 
     // Upper bound policy UCB1
-    private SingleTreeNode uct(GameState state) {
-        SingleTreeNode selected = null;
+    private GroupXSingleTreeNode uct(GameState state) {
+        GroupXSingleTreeNode selected = null;
         double bestValue = -Double.MAX_VALUE;
-        for (SingleTreeNode child : this.children)
+        for (GroupXSingleTreeNode child : this.children)
         {
             double hvVal = child.totValue;
             double childValue =  hvVal / (child.nVisits + params.epsilon);
@@ -258,9 +258,9 @@ public class SingleTreeNode
     }
 
     // Back Propagation
-    private void backUp(SingleTreeNode node, double result)
+    private void backUp(GroupXSingleTreeNode node, double result)
     {
-        SingleTreeNode n = node;
+        GroupXSingleTreeNode n = node;
         while(n != null)
         {
             n.nVisits++;
@@ -342,7 +342,7 @@ public class SingleTreeNode
 
 
     private boolean notFullyExpanded() {
-        for (SingleTreeNode tn : children) {
+        for (GroupXSingleTreeNode tn : children) {
             if (tn == null) {
                 return true;
             }

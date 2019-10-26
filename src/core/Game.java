@@ -296,8 +296,20 @@ public class Game {
     }
 
     /**
-     * Get player actions, 1 for each avatar still in the game. Called at every frame.
+     * MICHAEL EDITS:SurroundingsIndex -> ActionDistribution Logging
+     *
      */
+    Vector2d playerPos;
+    Types.TILETYPE[][] tileBoard;
+    int surroundingsIndex = 0;
+
+    // Map: Tile Key to Surroundings.
+    Integer[] surroundingsMap = new Integer[]{
+            1,2,3,4,5,1,6,6,6,7,7,7,7,7
+    };
+
+    HashMap<Integer, ActionDistribution> actionDistributions = new HashMap<Integer, ActionDistribution>();
+
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
         Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
@@ -307,12 +319,57 @@ public class Game {
             // Check if this player is still playing
             if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
                 actions[i] = p.act(gameStateObservations[i]);
+
+                //MB: Determine position of the current Player. Based on ForwardModel class
+                playerPos = gameStateObservations[i].getPosition();
+                tileBoard = gameStateObservations[i].getBoard();
+                // Get the Surroundings representation of this players position
+                surroundingsIndex = getSurroundingsIndex(playerPos, tileBoard);
+                // If it is there, add to it. If it isn't
+                if (!actionDistributions.containsKey(surroundingsIndex)) {
+                    actionDistributions.put(surroundingsIndex, new ActionDistribution());
+                }
+                actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
+                printActionDistribution(actionDistributions,surroundingsIndex);
+
             } else {
                 // This player is dead and action will be ignored
                 actions[i] = Types.ACTIONS.ACTION_STOP;
             }
         }
         return actions;
+    }
+
+    private int getSurroundingsIndex(Vector2d playerPos, Types.TILETYPE[][] tiles) {
+        // Get Tile values of surrounding Tiles (clockwise: Top, Right, Down, Left).
+        // Top left is origin, 0,0
+        // Convert TileMap Integers to Surroundings Integers
+        Integer[] surroundings = new Integer[4];
+        surroundings[0] = validateSurroundings(playerPos.y-1, playerPos.x, tiles);
+        surroundings[1] = validateSurroundings(playerPos.y, playerPos.x+1, tiles);
+        surroundings[2] = validateSurroundings(playerPos.y+1, playerPos.x, tiles);
+        surroundings[3] = validateSurroundings(playerPos.y, playerPos.x-1, tiles);
+        return Integer.valueOf(String.valueOf(surroundings[0]) + String.valueOf(surroundings[1]) + String.valueOf(surroundings[2])+ String.valueOf(surroundings[3]));
+    }
+
+    // Handle when surroundings include edge of map (treat as Rigid)
+    private int validateSurroundings(int y,int x,Types.TILETYPE[][] tiles){
+        if (y<0 || x<0 || y>=size || x>=size){
+            return 1;
+        } else {
+            // Return the surroundings equivalent of this Tile
+            return surroundingsMap[tiles[y][x].getKey()];
+        }
+    }
+
+    private void printActionDistributions(HashMap<Integer, ActionDistribution> countMap) {
+        for (HashMap.Entry mapElement : countMap.entrySet()) {
+            System.out.println(mapElement.toString());
+        }
+    }
+
+    private void printActionDistribution(HashMap<Integer, ActionDistribution> countMap, int i) {
+        System.out.println(i + ": " + countMap.get(i).toString());
     }
 
     /**
@@ -424,6 +481,15 @@ public class Game {
             Player p = players.get(i);
             p.result(finalRewards[i]);
         }
+
+        // Print out the Final elements:
+        System.out.println("FINAL ACTIONS RECORDED:");
+        System.out.println("--------------------------");
+        System.out.println("--------------------------");
+        System.out.println("--------------------------");
+        System.out.println("--------------------------");
+        System.out.println("--------------------------");
+        printActionDistributions(actionDistributions);
 
         if (LOGGING_STATISTICS)
             gs.model.saveEventsStatistics(gameIdStr, seed);
