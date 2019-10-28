@@ -74,9 +74,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         // Returns, for example: AGENT0, AGENT1, AGENT3
         Types.TILETYPE[] enemies = gs.getEnemies();
         Types.TILETYPE[][] board = gs.getBoard();
-
-
-
+        
         //Determine the best action to take and return it.
         int action = m_root.mostVisitedAction();
         //... and return it.
@@ -96,14 +94,13 @@ public class GroupXPlayer extends ParameterizedPlayer {
         return new GroupXPlayer(seed, playerID, params);
     }
 
-    private int findEnemyPositions(Types.TILETYPE[][] board)
+    private int findEnemyPositions(Types.TILETYPE[][] board){
+        return 0;
+    }
 
     private int updateEnemyActions(Types.TILETYPE[][] board, int ex, int ey){
         int width = board.length;
         int height = board[0].length;
-
-        if(ex )
-
 
         return 0;
     }
