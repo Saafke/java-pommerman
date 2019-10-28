@@ -21,4 +21,5 @@ public class ActionDistribution implements Serializable  {
         return String.format("STOP: %d, UP: %d, DOWN: %d, LEFT: %d, RIGHT: %d, BOMB: %d",
                 actionCounts[0],actionCounts[1],actionCounts[2],actionCounts[3],actionCounts[4],actionCounts[5]);
     }
+
 }

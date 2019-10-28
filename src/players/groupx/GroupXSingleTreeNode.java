@@ -159,6 +159,7 @@ public class GroupXSingleTreeNode
             {
                 actionsAll[i] = act;
             }else {
+                // MB: Use Table lookup here
                 int actionIdx = m_rnd.nextInt(gs.nActions());
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }

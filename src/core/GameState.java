@@ -415,7 +415,6 @@ public class GameState {
         return true;
     }
 
-
     /**
      * Optional game state constructor, used to parse JSON observations
      * @param state JSON game state

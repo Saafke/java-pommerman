@@ -40,7 +40,7 @@ public class Run {
 
         //default
         if(args.length == 0)
-            args = new String[]{"0", "2", "20", "-1", "5", "5", "5", "5"};
+            args = new String[]{"0", "2", "20", "-1", "5", "5", "5", "8"};
 
         if(args.length != 8) {
             printHelp();
@@ -64,7 +64,6 @@ public class Run {
             Types.GAME_MODE gMode = Types.GAME_MODE.FFA;
             if(Integer.parseInt(args[0]) == 1)
                 gMode = Types.GAME_MODE.TEAM;
-
 
 
             int S = Integer.parseInt(args[1]);

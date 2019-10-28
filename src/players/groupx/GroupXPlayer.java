@@ -7,15 +7,21 @@ import players.mcts.SingleTreeNode;
 import players.optimisers.ParameterizedPlayer;
 import utils.ElapsedCpuTimer;
 import utils.Types;
+import utils.Vector2d;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 public class GroupXPlayer extends ParameterizedPlayer {
-
+    // AGENT0, AGENT1
     private Random m_rnd;
     public Types.ACTIONS[] actions;
     public GroupXParams params;
+    //MB: Temporary test of storing AGENT0Moves.
+    private Vector2d[] enemyPositions = new Vector2d[3];
+    private int[] enemyMoves = new int[800];
+    private int enemyX = 0;
+    private int enemyY = 0;
 
     public GroupXPlayer(long seed, int id) {
         this(seed, id, new GroupXParams());
@@ -49,11 +55,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
     @Override
     public Types.ACTIONS act(GameState gs) {
 
-        // TODO update gs
-        if (gs.getGameMode().equals(Types.GAME_MODE.TEAM_RADIO)){
-            int[] msg = gs.getMessage();
-        }
-
         ElapsedCpuTimer ect = new ElapsedCpuTimer();
         ect.setMaxTimeMillis(params.num_time);
 
@@ -67,11 +68,17 @@ public class GroupXPlayer extends ParameterizedPlayer {
         //Determine the action using MCTS...
         m_root.mctsSearch(ect);
 
+        //MB: Handle the assessment of Opponent Actions: Is the table performing well or should we switch?
+        //MB: Will likely need to infer the actions that opponents took...
+
+        // Returns, for example: AGENT0, AGENT1, AGENT3
+        Types.TILETYPE[] enemies = gs.getEnemies();
+        Types.TILETYPE[][] board = gs.getBoard();
+
+
+
         //Determine the best action to take and return it.
         int action = m_root.mostVisitedAction();
-
-        // TODO update message memory
-
         //... and return it.
         return actions[action];
     }
@@ -87,5 +94,17 @@ public class GroupXPlayer extends ParameterizedPlayer {
     @Override
     public Player copy() {
         return new GroupXPlayer(seed, playerID, params);
+    }
+
+    private int findEnemyPositions(Types.TILETYPE[][] board)
+
+    private int updateEnemyActions(Types.TILETYPE[][] board, int ex, int ey){
+        int width = board.length;
+        int height = board[0].length;
+
+        if(ex )
+
+
+        return 0;
     }
 }
