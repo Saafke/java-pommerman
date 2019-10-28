@@ -25,8 +25,8 @@ public class MCTSParams implements ParameterSet {
 
     // Parameters
     public double K = Math.sqrt(2); //constant for UCB1
-    public int rollout_depth = 2; //10;
-    public int heuristic_method = CUSTOM_HEURISTIC;
+    public int rollout_depth = 15; //10;
+    public int heuristic_method = ADVANCED_HEURISTIC;
 
     // Budget settings
     public int stop_type = STOP_TIME;
