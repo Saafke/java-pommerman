@@ -5,6 +5,7 @@ import objects.GameObject;
 import players.Player;
 import players.SimonSaysPlayer;
 import utils.*;
+import java.io.*;
 
 import java.util.*;
 
@@ -308,7 +309,7 @@ public class Game {
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
 
-    HashMap<Integer, ActionDistribution> actionDistributions = new HashMap<Integer, ActionDistribution>();
+    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions();
 
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
@@ -366,6 +367,52 @@ public class Game {
         for (HashMap.Entry mapElement : countMap.entrySet()) {
             System.out.println(mapElement.toString());
         }
+    }
+
+    private void saveActionDistributions(HashMap<Integer, ActionDistribution> actionDistributions){
+        try {
+            FileOutputStream fos = new FileOutputStream("hashmap.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(actionDistributions);
+            oos.close();
+            fos.close();
+            System.out.printf("Serialized HashMap data is saved in hashmap.ser");
+        }catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    private HashMap<Integer, ActionDistribution> retrieveActionDistributions(){
+        // Retrieve the Serialized distributions from last run
+        HashMap<Integer, ActionDistribution> map = null;
+        try
+        {
+            FileInputStream fis = new FileInputStream("hashmap.ser");
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            map = (HashMap) ois.readObject();
+            ois.close();
+            fis.close();
+        }catch(IOException ioe)
+        {
+            ioe.printStackTrace();
+            return null;
+        }catch(ClassNotFoundException c)
+        {
+            System.out.println("Class not found");
+            c.printStackTrace();
+            return null;
+        }
+        System.out.println("Deserialized HashMap");
+        // Display content using Iterator
+        Set set = map.entrySet();
+        Iterator iterator = set.iterator();
+        while(iterator.hasNext()) {
+            Map.Entry mentry = (Map.Entry)iterator.next();
+            System.out.print("key: "+ mentry.getKey() + " & Value: ");
+            System.out.println(mentry.getValue());
+        }
+
+        return map;
     }
 
     private void printActionDistribution(HashMap<Integer, ActionDistribution> countMap, int i) {
@@ -490,6 +537,8 @@ public class Game {
         System.out.println("--------------------------");
         System.out.println("--------------------------");
         printActionDistributions(actionDistributions);
+
+        saveActionDistributions(actionDistributions);
 
         if (LOGGING_STATISTICS)
             gs.model.saveEventsStatistics(gameIdStr, seed);
