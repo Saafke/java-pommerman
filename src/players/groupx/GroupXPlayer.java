@@ -30,10 +30,23 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>> enemyActions;
     Types.TILETYPE[][] oldBoard;
 
-
+    /**
+     begin{itemize}
+     \item 0: passage, 1
+     \item 1: rigid, 2
+     \item 2: wood, 3
+     \item 3: bomb, 4
+     \item 4: flames, 5
+     \item 5: fog, treat as passage 1
+     \item 6-8: powerups, treat the same, 6
+     \item 9: dummyAgent, 7
+     \item 10-13: Agents, treat the same, 7
+     */
     Integer[] surroundingsMap = new Integer[]{
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
+
+
 
     public GroupXPlayer(long seed, int id) {
         this(seed, id, new GroupXParams());
@@ -215,7 +228,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
     // Handle when surroundings include edge of map (treat as Rigid)
     private int validateSurroundings(int y,int x,Types.TILETYPE[][] board){
         if (y<0 || x<0 || y>=board.length || x>= board.length){
-            return 1;
+            return 2;
         } else {
             // Return the surroundings equivalent of this Tile
             return surroundingsMap[board[y][x].getKey()];

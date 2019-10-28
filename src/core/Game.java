@@ -358,7 +358,7 @@ public class Game {
     // Handle when surroundings include edge of map (treat as Rigid)
     private int validateSurroundings(int y,int x,Types.TILETYPE[][] board){
         if (y<0 || x<0 || y>=board.length || x>= board.length){
-            return 1;
+            return 2;
         } else {
             // Return the surroundings equivalent of this Tile
             return surroundingsMap[board[y][x].getKey()];
