@@ -7,6 +7,8 @@ import players.SimonSaysPlayer;
 import utils.*;
 import java.io.*;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static utils.Types.*;
@@ -309,7 +311,7 @@ public class Game {
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
 
-    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions();
+    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions("hashMapRHEA.ser");
 
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
@@ -331,7 +333,7 @@ public class Game {
                     actionDistributions.put(surroundingsIndex, new ActionDistribution());
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
-                printActionDistribution(actionDistributions,surroundingsIndex);
+                //printActionDistribution(actionDistributions,surroundingsIndex);
 
             } else {
                 // This player is dead and action will be ignored
@@ -369,25 +371,38 @@ public class Game {
         }
     }
 
-    private void saveActionDistributions(HashMap<Integer, ActionDistribution> actionDistributions){
+    private void saveActionDistributions(HashMap<Integer, ActionDistribution> actionDistributions, String f){
+
+        //If hashmap folder does not exist: make one.
+        File hashfolder = new File("./hashmaps/");
+        if (!hashfolder.exists()) {
+            new File ("./hashmaps/").mkdir();
+        }
+
         try {
-            FileOutputStream fos = new FileOutputStream("hashmap.ser");
+            FileOutputStream fos = new FileOutputStream("./hashmaps/"+f);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(actionDistributions);
             oos.close();
             fos.close();
-            System.out.printf("Serialized HashMap data is saved in hashmap.ser");
+            System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
         }catch(IOException ioe) {
             ioe.printStackTrace();
         }
     }
 
-    private HashMap<Integer, ActionDistribution> retrieveActionDistributions(){
+    private HashMap<Integer, ActionDistribution> retrieveActionDistributions(String hashMapFilename){
+
+        // if hashmap of this filename not exists yet, make a empty one.
+        if(!new File("./hashmaps/"+hashMapFilename).exists()){
+            return new HashMap<Integer, ActionDistribution>();
+        }
+
         // Retrieve the Serialized distributions from last run
         HashMap<Integer, ActionDistribution> map = null;
         try
         {
-            FileInputStream fis = new FileInputStream("hashmap.ser");
+            FileInputStream fis = new FileInputStream("./hashmaps/"+hashMapFilename);
             ObjectInputStream ois = new ObjectInputStream(fis);
             map = (HashMap) ois.readObject();
             ois.close();
@@ -538,7 +553,7 @@ public class Game {
         System.out.println("--------------------------");
         printActionDistributions(actionDistributions);
 
-        saveActionDistributions(actionDistributions);
+        saveActionDistributions(actionDistributions, "hashMapRHEA.ser");
 
         if (LOGGING_STATISTICS)
             gs.model.saveEventsStatistics(gameIdStr, seed);
