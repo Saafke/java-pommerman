@@ -38,15 +38,16 @@ public class Test {
 
         GroupXParams groupxParams = new GroupXParams();
         groupxParams.stop_type = groupxParams.STOP_ITERATIONS;
-        groupxParams.heuristic_method = groupxParams.CUSTOM_HEURISTIC;
+        groupxParams.heuristic_method = groupxParams.ADVANCED_HEURISTIC;
 
         RHEAParams rheaParams = new RHEAParams();
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
+        players.add(new GroupXPlayer(seed, playerID++, groupxParams));
         players.add(new MCTSPlayer(seed, playerID++,mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
+
 
         // Make sure we have exactly NUM_PLAYERS players
         assert players.size() == Types.NUM_PLAYERS : "There should be " + Types.NUM_PLAYERS +

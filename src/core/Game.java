@@ -312,8 +312,6 @@ public class Game {
 
     HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions("hashMapMCTS.ser");
 
-    ActionDistribution example = actionDistributions.get(212);
-
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
         Types.ACTIONS[] actions = new Types.ACTIONS[NUM_PLAYERS];
@@ -335,6 +333,7 @@ public class Game {
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
                 //printActionDistribution(actionDistributions,surroundingsIndex);
+                if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
 
             } else {
                 // This player is dead and action will be ignored
@@ -344,25 +343,25 @@ public class Game {
         return actions;
     }
 
-    private int getSurroundingsIndex(Vector2d playerPos, Types.TILETYPE[][] tiles) {
+    private int getSurroundingsIndex(Vector2d playerPos, Types.TILETYPE[][] board) {
         // Get Tile values of surrounding Tiles (clockwise: Top, Right, Down, Left).
         // Top left is origin, 0,0
         // Convert TileMap Integers to Surroundings Integers
         Integer[] surroundings = new Integer[4];
-        surroundings[0] = validateSurroundings(playerPos.y-1, playerPos.x, tiles);
-        surroundings[1] = validateSurroundings(playerPos.y, playerPos.x+1, tiles);
-        surroundings[2] = validateSurroundings(playerPos.y+1, playerPos.x, tiles);
-        surroundings[3] = validateSurroundings(playerPos.y, playerPos.x-1, tiles);
+        surroundings[0] = validateSurroundings(playerPos.y-1, playerPos.x, board);
+        surroundings[1] = validateSurroundings(playerPos.y, playerPos.x+1, board);
+        surroundings[2] = validateSurroundings(playerPos.y+1, playerPos.x, board);
+        surroundings[3] = validateSurroundings(playerPos.y, playerPos.x-1, board);
         return Integer.valueOf(String.valueOf(surroundings[0]) + String.valueOf(surroundings[1]) + String.valueOf(surroundings[2])+ String.valueOf(surroundings[3]));
     }
 
     // Handle when surroundings include edge of map (treat as Rigid)
-    private int validateSurroundings(int y,int x,Types.TILETYPE[][] tiles){
-        if (y<0 || x<0 || y>=size || x>=size){
+    private int validateSurroundings(int y,int x,Types.TILETYPE[][] board){
+        if (y<0 || x<0 || y>=board.length || x>= board.length){
             return 1;
         } else {
             // Return the surroundings equivalent of this Tile
-            return surroundingsMap[tiles[y][x].getKey()];
+            return surroundingsMap[board[y][x].getKey()];
         }
     }
 
