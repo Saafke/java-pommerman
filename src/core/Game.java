@@ -298,7 +298,6 @@ public class Game {
 
     /**
      * MICHAEL EDITS:SurroundingsIndex -> ActionDistribution Logging
-     *
      */
     Vector2d playerPos;
     Types.TILETYPE[][] tileBoard;
@@ -331,7 +330,6 @@ public class Game {
                     actionDistributions.put(surroundingsIndex, new ActionDistribution());
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
-                printActionDistribution(actionDistributions,surroundingsIndex);
 
             } else {
                 // This player is dead and action will be ignored
@@ -384,6 +382,7 @@ public class Game {
 
     private HashMap<Integer, ActionDistribution> retrieveActionDistributions(){
         // Retrieve the Serialized distributions from last run
+
         HashMap<Integer, ActionDistribution> map = null;
         try
         {
@@ -528,15 +527,6 @@ public class Game {
             Player p = players.get(i);
             p.result(finalRewards[i]);
         }
-
-        // Print out the Final elements:
-        System.out.println("FINAL ACTIONS RECORDED:");
-        System.out.println("--------------------------");
-        System.out.println("--------------------------");
-        System.out.println("--------------------------");
-        System.out.println("--------------------------");
-        System.out.println("--------------------------");
-        printActionDistributions(actionDistributions);
 
         saveActionDistributions(actionDistributions);
 
