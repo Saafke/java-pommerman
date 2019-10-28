@@ -99,12 +99,12 @@ public class GroupXPlayer extends ParameterizedPlayer {
         // Go through each enemy, updating positions and actions
         for (Types.TILETYPE enemy : aliveEnemies) {
             // MB: Update position
+            Vector2d newPosition = findEnemyPosition(newBoard, enemy);
             if (!enemyPositions.containsKey(enemy)) {
                 //TODO: Handle start of the game better. At the moment it populates a STOP at the start.
                 enemyPositions.put(enemy, newPosition);
             }
             Vector2d oldPosition = enemyPositions.get(enemy);
-            Vector2d newPosition = findEnemyPosition(newBoard, enemy);
 
             // MB: Infer and update actions.
             Types.ACTIONS action = inferEnemyAction(oldPosition, newPosition, newBoard);
@@ -128,8 +128,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
                 System.out.println(enemy + " action from GroupXPlayer perspective was: " + action + " with surroundings: " +enemySurroundings);
                 printActionDistributions(enemyActions.get(enemy));
             }
-
-
         }
 
         //Determine the best action to take and return it.

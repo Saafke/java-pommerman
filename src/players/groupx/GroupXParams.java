@@ -25,14 +25,14 @@ public class GroupXParams implements ParameterSet {
 
     // Parameters
     public double K = Math.sqrt(2); //constant for UCB1
-    public int rollout_depth = 2; //10;
+    public int rollout_depth = 10; //10;
     public int heuristic_method = CUSTOM_HEURISTIC;
 
     // Budget settings
     public int stop_type = STOP_TIME;
-    public int num_iterations = 200;
-    public int num_fmcalls = 2000;
-    public int num_time = 40;
+    public int num_iterations = 100;
+    public int num_fmcalls = 400;
+    public int num_time = 20;
 
     @Override
     public void setParameterValue(String param, Object value) {
