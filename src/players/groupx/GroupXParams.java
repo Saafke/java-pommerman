@@ -25,7 +25,7 @@ public class GroupXParams implements ParameterSet {
 
     // Parameters
     public double K = Math.sqrt(2); //constant for UCB1
-    public int rollout_depth = 10; //10;
+    public int rollout_depth = 12; //10;
     public int heuristic_method = CUSTOM_HEURISTIC;
 
     // Budget settings

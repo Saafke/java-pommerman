@@ -9,8 +9,9 @@ import utils.Types;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class MCTSPlayer extends ParameterizedPlayer {
+public class MCTSPlayerX extends ParameterizedPlayer {
 
+    int nEnemies;
     /**
      * Random generator.
      */
@@ -21,16 +22,18 @@ public class MCTSPlayer extends ParameterizedPlayer {
      */
     public Types.ACTIONS[] actions;
 
+    //**
+    public SingleTreeNode lastTree = null;
     /**
      * Params for this MCTS
      */
     public MCTSParams params;
 
-    public MCTSPlayer(long seed, int id) {
+    public MCTSPlayerX(long seed, int id) {
         this(seed, id, new MCTSParams());
     }
 
-    public MCTSPlayer(long seed, int id, MCTSParams params) {
+    public MCTSPlayerX(long seed, int id, MCTSParams params) {
         super(seed, id, params);
         reset(seed, id);
 
@@ -69,16 +72,43 @@ public class MCTSPlayer extends ParameterizedPlayer {
         // Number of actions available
         int num_actions = actions.length;
 
-        //Create a new tree with new root
-        SingleTreeNode m_root = new SingleTreeNode(params, m_rnd, num_actions, actions);
-        // set the current game as the root
-        m_root.setRootGameState(gs);
+        SingleTreeNode m_root;
+        int nEnemiesNow = gs.getAliveEnemyIDs().size();
+
+
+        //Reuse the last gametree -------
+        if(lastTree != null) {
+            //System.out.println("Using last tree");
+            m_root = lastTree;
+            //m_root.discount();
+            m_root.setRootGameState(gs);
+        }
+        //--------------------------------
+        else{
+            //Create a new tree with new root
+            m_root = new SingleTreeNode(params, m_rnd, num_actions, actions);
+            // set the current game as the root
+            m_root.setRootGameState(gs);
+        }
+
+        if(nEnemiesNow != nEnemies){ //enemydied - discard tree
+            //Create a new tree with new root
+            m_root = new SingleTreeNode(params, m_rnd, num_actions, actions);
+            // set the current game as the root
+            m_root.setRootGameState(gs);
+        }
+
+        //update enemy count
+        nEnemies = nEnemiesNow;
 
         //Determine the action using MCTS...
         m_root.mctsSearch(ect);
 
         //Determine the best action to take and return it.
         int action = m_root.mostVisitedAction();
+
+        //**In the game-tree take the action and save it
+        //lastTree = m_root.returnChild(action);
 
         // TODO update message memory
 

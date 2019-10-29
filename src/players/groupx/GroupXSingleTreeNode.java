@@ -4,17 +4,16 @@ import core.GameState;
 import players.heuristics.AdvancedHeuristic;
 import players.heuristics.CustomHeuristic;
 import players.heuristics.StateHeuristic;
-import utils.ElapsedCpuTimer;
-import utils.Types;
-import utils.Utils;
-import utils.Vector2d;
+import utils.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 // MB: BRANCH
 public class GroupXSingleTreeNode
 {
     public GroupXParams params;
+    public GroupXutils utilsX;
 
     private GroupXSingleTreeNode parent;
     private GroupXSingleTreeNode[] children;
@@ -32,13 +31,15 @@ public class GroupXSingleTreeNode
     private GameState rootState;
     private StateHeuristic rootStateHeuristic;
 
-    GroupXSingleTreeNode(GroupXParams p, Random rnd, int num_actions, Types.ACTIONS[] actions) {
-        this(p, null, -1, rnd, num_actions, actions, 0, null);
+    GroupXSingleTreeNode(GroupXParams p, GroupXutils utilsX, Random rnd, int num_actions, Types.ACTIONS[] actions) {
+        this(p, utilsX, null, -1, rnd, num_actions, actions, 0, null);
     }
 
-    private GroupXSingleTreeNode(GroupXParams p, GroupXSingleTreeNode parent, int childIdx, Random rnd, int num_actions,
-                           Types.ACTIONS[] actions, int fmCallsCount, StateHeuristic sh) {
+    private GroupXSingleTreeNode(GroupXParams p, GroupXutils utilsX, GroupXSingleTreeNode parent, int childIdx,
+                                 Random rnd, int num_actions, Types.ACTIONS[] actions, int fmCallsCount,
+                                 StateHeuristic sh) {
         this.params = p;
+        this.utilsX = utilsX;
         this.fmCallsCount = fmCallsCount;
         this.parent = parent;
         this.m_rnd = rnd;
@@ -140,7 +141,7 @@ public class GroupXSingleTreeNode
         //Roll the state
         roll(state, actions[bestAction]);
 
-        GroupXSingleTreeNode tn = new GroupXSingleTreeNode(params,this,bestAction,this.m_rnd,num_actions,
+        GroupXSingleTreeNode tn = new GroupXSingleTreeNode(params, utilsX, this,bestAction,this.m_rnd,num_actions,
                 actions, fmCallsCount, rootStateHeuristic);
         children[bestAction] = tn;
         return tn;
@@ -153,6 +154,9 @@ public class GroupXSingleTreeNode
         Types.ACTIONS[] actionsAll = new Types.ACTIONS[4];
         int playerId = gs.getPlayerId() - Types.TILETYPE.AGENT0.getKey();
 
+        //XW: get the IDs of all living enemies
+        ArrayList<Types.TILETYPE> enemyIDs = gs.getAliveEnemyIDs();
+
         for(int i = 0; i < nPlayers; ++i)
         {
             if(playerId == i)
@@ -160,7 +164,45 @@ public class GroupXSingleTreeNode
                 actionsAll[i] = act;
             }else {
                 // MB: Use Table lookup here
-                int actionIdx = m_rnd.nextInt(gs.nActions());
+
+                //XW: original code - assigns random actions for enemies
+                //int actionIdx = m_rnd.nextInt(gs.nActions());
+                //actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
+
+                //XW: get RELEVANT enemy
+                Types.TILETYPE curEnemy = null;
+                for ( Types.TILETYPE t : enemyIDs){
+                    if ((t.getKey() - Types.TILETYPE.AGENT0.getKey()) == i){
+                        curEnemy = t;
+                    }
+                }
+
+                // XW: if enemy not find in AliveEnemies, this enemy is dead and just assign stop
+                if (curEnemy == null){
+                    actionsAll[i] = Types.ACTIONS.all().get(0);
+                    continue; //next iteration
+                }
+
+                //System.out.println("Current Enemy = "+curEnemy+ " with i="+i);
+                // todo: fix bug here somewhere - sometimes output = "Couldn't find enemy position?? whyy oo whyy
+                //XW: get enemy's position
+                Vector2d enemyPos = utilsX.findEnemyPosition(gs.getBoard(), curEnemy);
+
+                //XW: get enemy's surroundings
+                int enemySurroundings = utilsX.getSurroundingsIndex(enemyPos, gs.getBoard());
+
+                //XW: get the actionDistribution corresponding to those particular surroundings -
+                // -- get actionDistribution hashmap
+                HashMap<Integer, ActionDistribution> actionDistributions = utilsX.actionDistributionsMCTS;
+                //-- sample action - or random if surrounding not in hashmap
+                int actionIdx;
+                if(actionDistributions.containsKey(enemySurroundings)){
+                    actionIdx = actionDistributions.get(enemySurroundings).sampleAction();
+                }else{
+                    actionIdx = m_rnd.nextInt(gs.nActions());
+                }
+
+                //XW: set action
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }

@@ -333,7 +333,7 @@ public class Game {
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
                 //printActionDistribution(actionDistributions,surroundingsIndex);
-                if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
+                //if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
 
             } else {
                 // This player is dead and action will be ignored
@@ -386,7 +386,7 @@ public class Game {
             oos.writeObject(actionDistributions);
             oos.close();
             fos.close();
-            System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
+            //System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
         }catch(IOException ioe) {
             ioe.printStackTrace();
         }
@@ -424,8 +424,8 @@ public class Game {
         Iterator iterator = set.iterator();
         while(iterator.hasNext()) {
             Map.Entry mentry = (Map.Entry)iterator.next();
-            System.out.print("key: "+ mentry.getKey() + " & Value: ");
-            System.out.println(mentry.getValue());
+//            System.out.print("key: "+ mentry.getKey() + " & Value: ");
+//            System.out.println(mentry.getValue());
         }
 
         return map;

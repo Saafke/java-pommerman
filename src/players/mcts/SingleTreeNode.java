@@ -11,7 +11,7 @@ import utils.Vector2d;
 
 import java.util.ArrayList;
 import java.util.Random;
-// MB: BRANCH
+
 public class SingleTreeNode
 {
     public MCTSParams params;
@@ -159,11 +159,11 @@ public class SingleTreeNode
             {
                 actionsAll[i] = act;
             }else {
-                // MB: Stick the opponenet model
                 int actionIdx = m_rnd.nextInt(gs.nActions());
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
+
         gs.next(actionsAll);
 
     }
@@ -349,5 +349,13 @@ public class SingleTreeNode
         }
 
         return false;
+    }
+
+    public double getTotValue() {
+        return totValue;
+    }
+
+    public int getFmCallsCount() {
+        return fmCallsCount;
     }
 }

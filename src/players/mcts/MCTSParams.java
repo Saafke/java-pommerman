@@ -29,10 +29,10 @@ public class MCTSParams implements ParameterSet {
     public int heuristic_method = ADVANCED_HEURISTIC;
 
     // Budget settings
-    public int stop_type = STOP_TIME;
-    public int num_iterations = 200;
-    public int num_fmcalls = 2000;
-    public int num_time = 40;
+    public int stop_type = STOP_TIME; //THIS MEANS IT WILL STOP AT THE ALLOTED TIME
+    public int num_iterations = 1000; //200
+    public int num_fmcalls = 2000; //2000
+    public int num_time = 40; //40
 
     @Override
     public void setParameterValue(String param, Object value) {
