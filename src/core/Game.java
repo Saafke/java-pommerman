@@ -388,7 +388,7 @@ public class Game {
             oos.writeObject(actionDistributions);
             oos.close();
             fos.close();
-            System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
+            //System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
         }catch(IOException ioe) {
             ioe.printStackTrace();
         }
@@ -426,8 +426,8 @@ public class Game {
         Iterator iterator = set.iterator();
         while(iterator.hasNext()) {
             Map.Entry mentry = (Map.Entry)iterator.next();
-            System.out.print("key: "+ mentry.getKey() + " & Value: ");
-            System.out.println(mentry.getValue());
+//            System.out.print("key: "+ mentry.getKey() + " & Value: ");
+//            System.out.println(mentry.getValue());
         }
 
         return map;

@@ -1,5 +1,6 @@
 import core.Game;
 import players.*;
+import players.groupx.GroupXutils;
 import players.mcts.MCTSParams;
 import players.mcts.MCTSPlayer;
 import players.groupx.GroupXParams;
@@ -150,7 +151,12 @@ public class Run {
                         playerStr[i-4] = "Saaf";
                         break;
                     case 8:
-                        p = new GroupXPlayer(seed, playerID++);
+                        GroupXutils groupxutils = new GroupXutils();
+
+                        // XW: Can set params here if we wanted
+                        GroupXParams groupXParams = new GroupXParams();
+
+                        p = new GroupXPlayer(seed, playerID++, groupxutils);
                         playerStr[i-4] = "GroupX";
                         break;
                     default:

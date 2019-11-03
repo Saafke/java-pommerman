@@ -31,7 +31,6 @@ public class ActionDistribution implements Serializable  {
         int sum=0;
         for (int i : actionCounts){
             sum += i;
-            System.out.print(i+", ");
         }
 
         // get random number between 0 and sum
