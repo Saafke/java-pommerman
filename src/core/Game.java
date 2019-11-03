@@ -41,6 +41,8 @@ public class Game {
     // String that identifies this game (for logging purposes)
     private String gameIdStr;
 
+    private String HASHMAPPATH ="hashMapREHA";
+
     // Log flags
     public static boolean LOG_GAME = false;
     public static boolean LOG_GAME_JSON = false; // If the game is being logged, should it be saved to json
@@ -310,7 +312,7 @@ public class Game {
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
 
-    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions("hashMapMCTS.ser");
+    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions(HASHMAPPATH);
 
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
@@ -333,7 +335,7 @@ public class Game {
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
                 //printActionDistribution(actionDistributions,surroundingsIndex);
-                if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
+                //if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
 
             } else {
                 // This player is dead and action will be ignored
@@ -545,7 +547,7 @@ public class Game {
             p.result(finalRewards[i]);
         }
 
-        saveActionDistributions(actionDistributions, "hashMapMCTS.ser");
+        saveActionDistributions(actionDistributions, HASHMAPPATH);
 
         if (LOGGING_STATISTICS)
             gs.model.saveEventsStatistics(gameIdStr, seed);

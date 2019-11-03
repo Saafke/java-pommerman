@@ -14,6 +14,9 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.io.*;
+
+import java.util.*;
 
 
 public class GroupXPlayer extends ParameterizedPlayer {
@@ -30,6 +33,9 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>> enemyActions;
     Types.TILETYPE[][] oldBoard;
 
+    private HashMap<Integer, ActionDistribution> MCTS_TABLE;
+    private HashMap<Integer, ActionDistribution> REHA_TABLE;
+
     /**
      begin{itemize}
      \item 0: passage, 1
@@ -45,8 +51,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
     Integer[] surroundingsMap = new Integer[]{
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
-
-
 
     public GroupXPlayer(long seed, int id) {
         this(seed, id, new GroupXParams());
@@ -65,6 +69,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
         aliveEnemies = new ArrayList<Types.TILETYPE>();
         enemyPositions = new HashMap<Types.TILETYPE, Vector2d>();
+        // Indexed by AGENT1, AGENT0. Stores Surroundings: Action distributions for
         enemyActions = new HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>>();
     }
 
@@ -98,9 +103,8 @@ public class GroupXPlayer extends ParameterizedPlayer {
         m_root.mctsSearch(ect);
 
         //MB: Handle the assessment of Opponent Actions: Is the table performing well or should we switch?
-        //MB: Will likely need to infer the actions that opponents took from the GameState, we can't access the
-        // explicit actions that were taken.
 
+        //MB: Need to store a list of assumed enemy outcomes and check against it.
 
         //MB: Only retrieve and iterate over enemies that are alive.
         aliveEnemies = gs.getAliveEnemyIDs();
@@ -138,8 +142,8 @@ public class GroupXPlayer extends ParameterizedPlayer {
             oldBoard = newBoard;
             //MB: Debugging
             if(enemy == Types.TILETYPE.AGENT1) {
-                System.out.println(enemy + " action from GroupXPlayer perspective was: " + action + " with surroundings: " +enemySurroundings);
-                printActionDistributions(enemyActions.get(enemy));
+                //System.out.println(enemy + " action from GroupXPlayer perspective was: " + action + " with surroundings: " +enemySurroundings);
+                //printActionDistributions(enemyActions.get(enemy));
             }
         }
 
@@ -213,6 +217,15 @@ public class GroupXPlayer extends ParameterizedPlayer {
         }
     }
 
+    private void computeActionSimilarity(String lookup,HashMap<Integer, ActionDistribution> actions){
+        // Input String of table to lookup against, HashMap of viewed surroundings:actions pairs
+        if(lookup == "MCTS"){
+            return;
+        } else {
+            return;
+        }
+    }
+
     private int getSurroundingsIndex(Vector2d playerPos, Types.TILETYPE[][] board) {
         // Get Tile values of surrounding Tiles (clockwise: Top, Right, Down, Left).
         // Top left is origin, 0,0
@@ -239,5 +252,43 @@ public class GroupXPlayer extends ParameterizedPlayer {
         for (HashMap.Entry mapElement : countMap.entrySet()) {
             System.out.println(mapElement.toString());
         }
+    }
+
+    private HashMap<Integer, ActionDistribution> retrieveTrainedDistributions(String hashMapFilename){
+        // if hashmap of this filename not exists yet, make a empty one.
+        if(!new File("./hashmaps/"+hashMapFilename).exists()){
+            return new HashMap<Integer, ActionDistribution>();
+        }
+
+        // Retrieve the Serialized distributions from last run
+        HashMap<Integer, ActionDistribution> map = null;
+        try
+        {
+            FileInputStream fis = new FileInputStream("./hashmaps/"+hashMapFilename);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            map = (HashMap) ois.readObject();
+            ois.close();
+            fis.close();
+        }catch(IOException ioe)
+        {
+            ioe.printStackTrace();
+            return null;
+        }catch(ClassNotFoundException c)
+        {
+            System.out.println("Class not found");
+            c.printStackTrace();
+            return null;
+        }
+        System.out.println("Deserialized HashMap");
+        // Display content using Iterator
+        Set set = map.entrySet();
+        Iterator iterator = set.iterator();
+        while(iterator.hasNext()) {
+            Map.Entry mentry = (Map.Entry)iterator.next();
+            System.out.print("key: "+ mentry.getKey() + " & Value: ");
+            System.out.println(mentry.getValue());
+        }
+
+        return map;
     }
 }
