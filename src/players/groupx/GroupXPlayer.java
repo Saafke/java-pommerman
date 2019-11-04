@@ -18,7 +18,8 @@ import java.io.*;
 
 import java.util.*;
 
-
+//todo: Worried about time with all this crap that has been added...
+// do a test of how long the opponent evaluation/ strategy switching part is taking.
 public class GroupXPlayer extends ParameterizedPlayer {
     private Random m_rnd;
     public Types.ACTIONS[] actions;
@@ -31,12 +32,14 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private ArrayList<Types.TILETYPE> aliveEnemies;
 
     //MB: Store enemy positions like AGENT0: (120,60) AGENT1: (50, 60)
-    //MB: Indexed by Enemy.
     private HashMap<Types.TILETYPE, Vector2d> enemyPositions;
 
     //MB: Store enemy actions. Yes, we're storing a HashMap of Hashmaps, because we PROFESSIONALS
-    //MB: Indexed by Enemy.
     private HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>> enemyActions;
+
+    //MB: Store the assumed enemy strategy. 0 = MCTS, 1 = REHA. Needs to be public so GroupX node can see it.
+    private HashMap<Types.TILETYPE,Integer> enemyStrategies;
+
     Types.TILETYPE[][] oldBoard;
 
     private HashMap<Integer, ActionDistribution> MCTS_TABLE;
@@ -59,14 +62,13 @@ public class GroupXPlayer extends ParameterizedPlayer {
     };
 
     public GroupXPlayer(long seed, int id) {
-        this(seed, id, new GroupXParams());
-        this.utilsX = utils;
+        this(seed, id, new GroupXParams(), new GroupXutils());
     }
 
-    public GroupXPlayer(long seed, int id, GroupXParams params) {
+    public GroupXPlayer(long seed, int id, GroupXParams params, GroupXutils utils) {
         super(seed, id, params);
         reset(seed, id);
-
+        this.utilsX = utils;
         ArrayList<Types.ACTIONS> actionsList = Types.ACTIONS.all();
         actions = new Types.ACTIONS[actionsList.size()];
         int i = 0;
@@ -76,8 +78,14 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
         aliveEnemies = new ArrayList<Types.TILETYPE>();
         enemyPositions = new HashMap<Types.TILETYPE, Vector2d>();
-        // Indexed by AGENT1, AGENT0. Stores Surroundings: Action distributions for
         enemyActions = new HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>>();
+        // Start off assuming MCTS. It's ok that this includes us, we'll never look us up.
+        enemyStrategies = new HashMap<Types.TILETYPE, Integer>();
+        enemyStrategies.put(Types.TILETYPE.AGENT0, 0);
+        enemyStrategies.put(Types.TILETYPE.AGENT1, 0);
+        enemyStrategies.put(Types.TILETYPE.AGENT2, 0);
+        enemyStrategies.put(Types.TILETYPE.AGENT3, 0);
+
     }
 
     @Override
@@ -107,20 +115,13 @@ public class GroupXPlayer extends ParameterizedPlayer {
         m_root.setRootGameState(gs);
 
         //Determine the action using MCTS...
-        m_root.mctsSearch(ect);
-
-        // TODO:
-        //MB: Handle the assessment of Opponent Actions: Is the table performing well or should we switch?
-        //MB: Will likely need to infer the actions that opponents took from the GameState, we can't access the
-        // explicit actions that were taken.
-
-        //MB: Need to store a list of assumed enemy outcomes and check against it.
+        //MB: We need to provide the enemy strategies to this function otherwise nodes can't see them.
+        m_root.mctsSearch(ect,enemyStrategies);
 
         //MB: Only retrieve and iterate over enemies that are alive.
         aliveEnemies = gs.getAliveEnemyIDs();
 
         Types.TILETYPE[][] newBoard = gs.getBoard();
-        //TODO: Handle start of the game better. At the moment it populates a STOP at the start.
         if(oldBoard == null) { oldBoard = gs.getBoard(); }
 
         // Go through each enemy, updating positions and actions
@@ -128,7 +129,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
             // MB: Update position
             Vector2d newPosition = utilsX.findEnemyPosition(newBoard, enemy);
             if (!enemyPositions.containsKey(enemy)) {
-                //TODO: Handle start of the game better. At the moment it populates a STOP at the start.
                 enemyPositions.put(enemy, newPosition);
             }
             Vector2d oldPosition = enemyPositions.get(enemy);
@@ -147,10 +147,8 @@ public class GroupXPlayer extends ParameterizedPlayer {
             }
             //MB: Update the Action Distribution with enemies old surroundings and the inferred action
             enemyActions.get(enemy).get(enemySurroundings).updateActionCount(action);
-
             //MB: Update enemy position with the new position
             enemyPositions.put(enemy, newPosition);
-
             //MB: We are done with the old board, update it
             oldBoard = newBoard;
             //MB: Debugging
@@ -159,6 +157,14 @@ public class GroupXPlayer extends ParameterizedPlayer {
 //                printActionDistributions(enemyActions.get(enemy));
 //                System.out.println("\n");
 //            }
+
+            //TODO: Seperate this out into a function and
+            //MB: Strategy switching assessment: Get integer of what strategy best fits this enemies actions
+            //MB: 0 MCTS, 1 REHA
+            int bestFitStrategy = utilsX.strategySwitch(enemyActions.get(enemy));
+            // MB: Update enemy strategy with the best fit one
+            enemyStrategies.put(enemy,bestFitStrategy);
+
         }
 
         //Determine the best action to take and return it.
@@ -177,7 +183,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
     @Override
     public Player copy() {
-        return new GroupXPlayer(seed, playerID, params);
+        return new GroupXPlayer(seed, playerID, params, utilsX);
     }
 
 }

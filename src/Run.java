@@ -38,10 +38,10 @@ public class Run {
     }
 
     public static void main(String[] args) {
-
         //default
+
         if(args.length == 0)
-            args = new String[]{"0", "2", "3", "-1", "4", "4", "4", "4"};
+            args = new String[]{"0", "1", "2", "-1", "4", "4", "4", "4"};
 
         if(args.length != 8) {
             printHelp();
@@ -156,7 +156,7 @@ public class Run {
                         // XW: Can set params here if we wanted
                         GroupXParams groupXParams = new GroupXParams();
 
-                        p = new GroupXPlayer(seed, playerID++, groupxutils);
+                        p = new GroupXPlayer(seed, playerID++,groupXParams, groupxutils);
                         playerStr[i-4] = "GroupX";
                         break;
                     default:
@@ -206,6 +206,8 @@ public class Run {
      * @param ki2 - secondary key controller
      * @param separateThreads - if separate threads should be used for the agents or not.
      */
+
+    //MB: Added String of hashMap to train, if there is one.
     public static void runGame(Game g, KeyController ki1, KeyController ki2, boolean separateThreads) {
         WindowInput wi = null;
         GUI frame = null;

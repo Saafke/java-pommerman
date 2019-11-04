@@ -11,8 +11,16 @@ public class ActionDistribution implements Serializable  {
     public ActionDistribution() {
         actionCounts = new int[]{0,0,0,0,0,0};
     }
+    //MB: If you want to initialise straight away for testing purposes. Unsafe, need right amount of entries
+    public ActionDistribution(int[] c) {
+        actionCounts = c;
+    }
     public int getActionCount(Types.ACTIONS action){
         return actionCounts[action.getKey()];
+    }
+
+    public int getActionCount(int action){
+        return actionCounts[action];
     }
 
     public void updateActionCount(Types.ACTIONS action){
@@ -27,14 +35,8 @@ public class ActionDistribution implements Serializable  {
     //Returns a sampled action from this particular ActionDistribution
     public int sampleAction(){
 
-        //Count total number in distribution
-        int sum=0;
-        for (int i : actionCounts){
-            sum += i;
-        }
-
         // get random number between 0 and sum
-        int rand = new Random().nextInt(sum);
+        int rand = new Random().nextInt(sum());
 
         // get the random action
         int currentSum = 0;
@@ -45,5 +47,23 @@ public class ActionDistribution implements Serializable  {
             }
         }
         return -1;
+    }
+
+    public int sum(){
+        // Sum all elements in this ActionDistribution
+        int sumThis=0;
+        for (int i : actionCounts){
+            sumThis += i;
+        }
+        return sumThis;
+    }
+
+    public double magnitude(){
+        // Sum all elements in this ActionDistribution
+        int sumThis=0;
+        for (int i : actionCounts){
+            sumThis += i^2;
+        }
+        return Math.sqrt(sumThis);
     }
 }

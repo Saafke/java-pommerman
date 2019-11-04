@@ -2,6 +2,8 @@ import core.Game;
 import players.*;
 import players.groupx.GroupXParams;
 import players.groupx.GroupXPlayer;
+import players.groupx.GroupXutils;
+import utils.ActionDistribution;
 import utils.Types;
 import players.rhea.utils.Constants;
 import players.mcts.MCTSPlayer;
@@ -11,6 +13,7 @@ import players.rhea.utils.RHEAParams;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Test {
 
@@ -21,8 +24,9 @@ public class Test {
         int boardSize = Types.BOARD_SIZE;
         Types.GAME_MODE gameMode = Types.GAME_MODE.FFA;
         boolean useSeparateThreads = false;
+        GroupXutils utilsX = new GroupXutils();
 
-        Game game = new Game(seed, boardSize, Types.GAME_MODE.FFA, "");
+        Game game = new Game(seed, boardSize, Types.GAME_MODE.FFA,"123");
 
         // Key controllers for human player s (up to 2 so far).
         KeyController ki1 = new KeyController(true);
@@ -44,8 +48,9 @@ public class Test {
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
         //players.add(new HumanPlayer(ki1, playerID++));
-        players.add(new GroupXPlayer(seed, playerID++, groupxParams));
-        //players.add(new MCTSPlayer(seed, playerID++,mctsParams));
+        //players.add(new GroupXPlayer(seed, playerID++, groupxParams, utilsX));
+        players.add(new MCTSPlayer(seed, playerID++,mctsParams));
+        players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
 
@@ -58,8 +63,19 @@ public class Test {
         game.setPlayers(players);
 
         //Run a single game with the players
-        Run.runGame(game, ki1, ki2, useSeparateThreads);
+        //Run.runGame(game, ki1, ki2, useSeparateThreads);
 
+        //MB: Test the Strategy switcher function:
+        HashMap<Integer, ActionDistribution> actionStrategy = new HashMap<Integer, ActionDistribution>();
+        actionStrategy.put(1111,new ActionDistribution(new int[]{3,0,5,0,0,2}));
+        actionStrategy.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+
+        HashMap<Integer, ActionDistribution> actionHistory = new HashMap<Integer, ActionDistribution>();
+        actionHistory.put(1111,new ActionDistribution(new int[]{3,0,5,0,0,2}));
+        actionHistory.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+
+        double similarity = utilsX.computeActionSimilarity(actionStrategy,actionHistory);
+        System.out.println(similarity);
         /* Uncomment to run the replay of the previous game: */
 //        if (game.isLogged()){
 //            Game replay = Game.getLastReplayGame();

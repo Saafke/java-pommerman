@@ -41,8 +41,10 @@ public class Game {
     // String that identifies this game (for logging purposes)
     private String gameIdStr;
 
+    //hashMapMCTS
+    //hashMapREHA
     private String HASHMAPPATH ="hashMapREHA";
-
+    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions(HASHMAPPATH);
     // Log flags
     public static boolean LOG_GAME = false;
     public static boolean LOG_GAME_JSON = false; // If the game is being logged, should it be saved to json
@@ -62,6 +64,7 @@ public class Game {
         this.seed = seed;
         this.size = size;
         this.gameIdStr = gameIdStr;
+        System.out.println("Game class: This Run will retrieve, update and save the training map: "+HASHMAPPATH);
         reset(seed);
     }
 
@@ -312,7 +315,7 @@ public class Game {
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
 
-    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions(HASHMAPPATH);
+
 
     private Types.ACTIONS[] getAvatarActions() {
         // Get player actions, 1 for each avatar still in the game
@@ -464,7 +467,6 @@ public class Game {
             if (threads[i] != null)
                 actions[i] = actors[i].getValue();
         }
-
         return actions;
     }
 

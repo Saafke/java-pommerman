@@ -66,7 +66,7 @@ public class GroupXSingleTreeNode
     }
 
 
-    void mctsSearch(ElapsedCpuTimer elapsedTimer) {
+    void mctsSearch(ElapsedCpuTimer elapsedTimer, HashMap<Types.TILETYPE, Integer> enemyStrategies) {
 
         double avgTimeTaken;
         double acumTimeTaken = 0;
@@ -80,8 +80,8 @@ public class GroupXSingleTreeNode
 
             GameState state = rootState.copy();
             ElapsedCpuTimer elapsedTimerIteration = new ElapsedCpuTimer();
-            GroupXSingleTreeNode selected = treePolicy(state);
-            double delta = selected.rollOut(state);
+            GroupXSingleTreeNode selected = treePolicy(state, enemyStrategies);
+            double delta = selected.rollOut(state,enemyStrategies);
             backUp(selected, delta);
 
             //Stopping condition
@@ -104,17 +104,17 @@ public class GroupXSingleTreeNode
     }
 
     // Node selection
-    private GroupXSingleTreeNode treePolicy(GameState state) {
+    private GroupXSingleTreeNode treePolicy(GameState state, HashMap<Types.TILETYPE,Integer> enemyStrategies) {
 
         GroupXSingleTreeNode cur = this;
 
         while (!state.isTerminal() && cur.m_depth < params.rollout_depth)
         {
             if (cur.notFullyExpanded()) {
-                return cur.expand(state);
+                return cur.expand(state,enemyStrategies);
 
             } else {
-                cur = cur.uct(state);
+                cur = cur.uct(state, enemyStrategies);
             }
         }
 
@@ -122,7 +122,7 @@ public class GroupXSingleTreeNode
     }
 
     // Expansion
-    private GroupXSingleTreeNode expand(GameState state) {
+    private GroupXSingleTreeNode expand(GameState state, HashMap<Types.TILETYPE,Integer> enemyStrategies) {
 
         int bestAction = 0;
         double bestValue = -1;
@@ -139,7 +139,7 @@ public class GroupXSingleTreeNode
         }
 
         //Roll the state
-        roll(state, actions[bestAction]);
+        roll(state, actions[bestAction], enemyStrategies);
 
         GroupXSingleTreeNode tn = new GroupXSingleTreeNode(params, utilsX, this,bestAction,this.m_rnd,num_actions,
                 actions, fmCallsCount, rootStateHeuristic);
@@ -147,7 +147,7 @@ public class GroupXSingleTreeNode
         return tn;
     }
 
-    private void roll(GameState gs, Types.ACTIONS act)
+    private void roll(GameState gs, Types.ACTIONS act, HashMap<Types.TILETYPE,Integer> enemyStrategies)
     {
         //Simple, all random first, then my position.
         int nPlayers = 4;
@@ -163,13 +163,11 @@ public class GroupXSingleTreeNode
             {
                 actionsAll[i] = act;
             }else {
-                // MB: Use Table lookup here
-
                 //XW: original code - assigns random actions for enemies
                 //int actionIdx = m_rnd.nextInt(gs.nActions());
                 //actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
 
-                //XW: get RELEVANT enemy
+                //XW: get RELEVANT enemy. MB: Why is this needed when it already samples form living enemies
                 Types.TILETYPE curEnemy = null;
                 for ( Types.TILETYPE t : enemyIDs){
                     if ((t.getKey() - Types.TILETYPE.AGENT0.getKey()) == i){
@@ -191,18 +189,29 @@ public class GroupXSingleTreeNode
                 //XW: get enemy's surroundings
                 int enemySurroundings = utilsX.getSurroundingsIndex(enemyPos, gs.getBoard());
 
-                //XW: get the actionDistribution corresponding to those particular surroundings -
-                // -- get actionDistribution hashmap
-                HashMap<Integer, ActionDistribution> actionDistributions = utilsX.actionDistributionsMCTS;
-                //-- sample action - or random if surrounding not in hashmap
-                int actionIdx;
-                if(actionDistributions.containsKey(enemySurroundings)){
-                    actionIdx = actionDistributions.get(enemySurroundings).sampleAction();
-                }else{
-                    actionIdx = m_rnd.nextInt(gs.nActions());
+                //MB: Enemies should always be in this HashMap but just in case, assume MCTS
+                if(!enemyStrategies.containsKey(curEnemy)){
+                    enemyStrategies.put(curEnemy, 0);
                 }
 
-                //XW: set action
+                //MB: Look up the MCTS table or the REHA table
+                int actionIdx;
+
+                if(enemyStrategies.get(curEnemy) == 0){
+                    if(utilsX.actionDistributionsMCTS.containsKey(enemySurroundings)){
+                        actionIdx = utilsX.actionDistributionsMCTS.get(enemySurroundings).sampleAction();
+                    }else{
+                        actionIdx = m_rnd.nextInt(gs.nActions());
+                    }
+                } else {
+                    //MB: REHA table lookup
+                    if(utilsX.actionDistributionsREHA.containsKey(enemySurroundings)){
+                        actionIdx = utilsX.actionDistributionsREHA.get(enemySurroundings).sampleAction();
+                    }else{
+                        actionIdx = m_rnd.nextInt(gs.nActions());
+                    }
+                }
+
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
@@ -212,7 +221,7 @@ public class GroupXSingleTreeNode
     }
 
     // Upper bound policy UCB1
-    private GroupXSingleTreeNode uct(GameState state) {
+    private GroupXSingleTreeNode uct(GameState state, HashMap<Types.TILETYPE,Integer> enemyStrategies) {
         GroupXSingleTreeNode selected = null;
         double bestValue = -Double.MAX_VALUE;
         for (GroupXSingleTreeNode child : this.children)
@@ -240,19 +249,19 @@ public class GroupXSingleTreeNode
         }
 
         //Roll the state:
-        roll(state, actions[selected.childIdx]);
+        roll(state, actions[selected.childIdx], enemyStrategies);
 
         return selected;
     }
 
     // Simulation - rollout
-    private double rollOut(GameState state)
+    private double rollOut(GameState state, HashMap<Types.TILETYPE,Integer> enemyStrategies)
     {
         int thisDepth = this.m_depth;
 
         while (!finishRollout(state,thisDepth)) {
             int action = safeRandomAction(state);
-            roll(state, actions[action]);
+            roll(state, actions[action], enemyStrategies);
             thisDepth++;
         }
 
