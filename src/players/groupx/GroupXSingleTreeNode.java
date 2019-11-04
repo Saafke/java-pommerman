@@ -182,8 +182,9 @@ public class GroupXSingleTreeNode
                 }
 
                 //System.out.println("Current Enemy = "+curEnemy+ " with i="+i);
-                // todo: fix bug here somewhere - sometimes output = "Couldn't find enemy position?? whyy oo whyy
-                //XW: get enemy's position
+                // todo: Find a way of holding enemy positions between rollouts so that it doesn't error sometimes (I removed the error)
+
+                //XW: get enemy's position. MB: This will return 0,0 in the forward model when enemy can't be found.
                 Vector2d enemyPos = utilsX.findEnemyPosition(gs.getBoard(), curEnemy);
 
                 //XW: get enemy's surroundings
@@ -194,7 +195,7 @@ public class GroupXSingleTreeNode
                     enemyStrategies.put(curEnemy, 0);
                 }
 
-                //MB: Look up the MCTS table or the REHA table
+                //MB: Look up the MCTS table or the RHEA table
                 int actionIdx;
 
                 if(enemyStrategies.get(curEnemy) == 0){
@@ -204,9 +205,9 @@ public class GroupXSingleTreeNode
                         actionIdx = m_rnd.nextInt(gs.nActions());
                     }
                 } else {
-                    //MB: REHA table lookup
-                    if(utilsX.actionDistributionsREHA.containsKey(enemySurroundings)){
-                        actionIdx = utilsX.actionDistributionsREHA.get(enemySurroundings).sampleAction();
+                    //MB: RHEA table lookup
+                    if(utilsX.actionDistributionsRHEA.containsKey(enemySurroundings)){
+                        actionIdx = utilsX.actionDistributionsRHEA.get(enemySurroundings).sampleAction();
                     }else{
                         actionIdx = m_rnd.nextInt(gs.nActions());
                     }

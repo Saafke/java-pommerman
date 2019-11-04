@@ -38,21 +38,30 @@ public class Test {
 
         MCTSParams mctsParams = new MCTSParams();
         mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
-        mctsParams.heuristic_method = mctsParams.CUSTOM_HEURISTIC;
+        mctsParams.num_iterations = 400;
+        mctsParams.rollout_depth = 15;
+        mctsParams.heuristic_method = mctsParams.ADVANCED_HEURISTIC;
 
         GroupXParams groupxParams = new GroupXParams();
         groupxParams.stop_type = groupxParams.STOP_ITERATIONS;
         groupxParams.heuristic_method = groupxParams.ADVANCED_HEURISTIC;
+        groupxParams.num_iterations = 400;
+        groupxParams.rollout_depth = 15;
 
         RHEAParams rheaParams = new RHEAParams();
+        rheaParams.budget_type = Constants.ITERATION_BUDGET;
+        rheaParams.iteration_budget = 200;
+        rheaParams.individual_length = 12;
         rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
 
-        //players.add(new HumanPlayer(ki1, playerID++));
-        //players.add(new GroupXPlayer(seed, playerID++, groupxParams, utilsX));
-        players.add(new MCTSPlayer(seed, playerID++,mctsParams));
+
+        players.add(new GroupXPlayer(seed, playerID++, groupxParams, utilsX));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
+        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
 
 
         // Make sure we have exactly NUM_PLAYERS players
@@ -63,19 +72,22 @@ public class Test {
         game.setPlayers(players);
 
         //Run a single game with the players
-        //Run.runGame(game, ki1, ki2, useSeparateThreads);
+        Run.runGame(game, ki1, ki2, useSeparateThreads);
 
-        //MB: Test the Strategy switcher function:
+        /* MB: Strategy Switcher function debugging
         HashMap<Integer, ActionDistribution> actionStrategy = new HashMap<Integer, ActionDistribution>();
-        actionStrategy.put(1111,new ActionDistribution(new int[]{1,0,1,0,0,1}));
-        //actionStrategy.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+        actionStrategy.put(1111,new ActionDistribution(new int[]{1,0,10,0,0,1}));
+        actionStrategy.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
 
         HashMap<Integer, ActionDistribution> actionHistory = new HashMap<Integer, ActionDistribution>();
-        actionHistory.put(1111,new ActionDistribution(new int[]{2,0,2,0,0,2}));
-        //actionHistory.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
-        System.out.println(actionStrategy.get(1111).magnitude());
+        actionHistory.put(1111,new ActionDistribution(new int[]{2,0,0,0,0,0}));
+        actionHistory.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+
         double similarity = utilsX.computeActionSimilarity(actionStrategy,actionHistory);
-        System.out.println(similarity);
+        double percentage = utilsX.computeActionPercentage(actionStrategy,actionHistory);
+        System.out.println(percentage);
+        */
+
         /* Uncomment to run the replay of the previous game: */
 //        if (game.isLogged()){
 //            Game replay = Game.getLastReplayGame();

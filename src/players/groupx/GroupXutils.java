@@ -1,34 +1,46 @@
 package players.groupx;
-
 import utils.ActionDistribution;
 import utils.Types;
 import utils.Vector2d;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
+import java.io.*;
+
 
 /**
  * Contains all the relevant functions for the GroupXpommerdude
  */
 public class GroupXutils {
 
-    // XW: Empty constructor
+    HashMap<Integer, ActionDistribution> actionDistributionsMCTS;
+    HashMap<Integer, ActionDistribution> actionDistributionsRHEA;
+
+    // MB: Constructor: Read the trained tables
     public GroupXutils(){
-        //
+        actionDistributionsRHEA = retrieveActionDistributions("hashMapRHEA");
+        actionDistributionsMCTS = retrieveActionDistributions("hashMapMCTS");
+
+        if(actionDistributionsMCTS == null){
+            System.out.println("Error: Serialised MCTS trained table was not read");
+        } else {
+            System.out.println("MCTS Trained table found and is: ");
+            printActionDistributions(actionDistributionsMCTS);
+            System.out.println("-----------------------------------------------");
+        }
+
+        if(actionDistributionsRHEA == null){
+            System.out.println("Error: Serialised REHA trained table was not read");
+        } else {
+            System.out.println("REHA Trained table found and is: ");
+            printActionDistributions(actionDistributionsRHEA);
+            System.out.println("-----------------------------------------------");
+        }
     }
 
     Integer[] surroundingsMap = new Integer[]{
             1,2,3,4,5,1,6,6,6,7,7,7,7,7
     };
-
-    HashMap<Integer, ActionDistribution> actionDistributionsMCTS = retrieveActionDistributions("hashMapMCTS.ser");
-    HashMap<Integer, ActionDistribution> actionDistributionsREHA = retrieveActionDistributions("hashMapREH.ser");
 
     // For when we don't know where the enemy is (eg. at the start). Search the whole board.
     public Vector2d findEnemyPosition(Types.TILETYPE[][] board, Types.TILETYPE enemy){
@@ -41,21 +53,33 @@ public class GroupXutils {
                 }
             }
         }
-        //TODO: Why is it that sometimes enemies can't be found?
-        System.out.println("Error: Couldn't find enemy position "+enemy);
         return new Vector2d(0,0);
     }
 
     // If we know where the enemy was the last tick, we only need to check a few places (more efficient than whole board search).
     //TODO: Implement faster findEnemyPosition method when the previous position is known, handling also when we'd exceed the board array bounds.
     public Vector2d findEnemyPosition(Types.TILETYPE[][] board,Types.TILETYPE enemy, Vector2d enemyPrevPos){
-        if(board[enemyPrevPos.y][enemyPrevPos.x] == enemy){
-            return new Vector2d(enemyPrevPos.x, enemyPrevPos.y);
+        int width = board.length;
+        int height = board[0].length;
+        int y = enemyPrevPos.y;
+        int x = enemyPrevPos.x;
+        // Not moved
+        if(board[y][x] == enemy) {
+            return new Vector2d(x, y);
         }
-        if(board[enemyPrevPos.y+1][enemyPrevPos.x] == enemy){
-            return new Vector2d(enemyPrevPos.x, enemyPrevPos.y+1);
+        if(y != 0) {
+            if (board[y - 1][x] == enemy) {return new Vector2d(x, y - 1); }
         }
-        return null;
+        if(y < height-1){
+            if(board[y+1][x] == enemy){ return new Vector2d(x, y+1); }
+        }
+        if(x != 0){
+            if(board[y][x-1] == enemy){ return new Vector2d(x-1, y); }
+        }
+        if(x < width-1){
+            if(board[y][x+1] == enemy){ return new Vector2d(x+1, y); }
+        }
+        return enemyPrevPos;
     }
 
     // Handle when surroundings include edge of map (treat as Rigid)
@@ -117,59 +141,84 @@ public class GroupXutils {
 
     public int strategySwitch(HashMap<Integer,ActionDistribution> actionHistory){
         //MB: Determine what the strategy should be, given a list of enemy actions
-        ///MB: Return 0 if MCTS. Return 1 if REHA
-        double mctsSimilarity = computeActionSimilarity(0, actionHistory);
-        double rehaSimilarity = computeActionSimilarity(1, actionHistory);
+        ///MB: Return 0 if MCTS. Return 1 if REHA.
+        //double mctsSimilarity = computeActionSimilarity(0, actionHistory);
+        //double rheaSimilarity = computeActionSimilarity(1, actionHistory);
+        double mctsSimilarity = computeActionPercentage(0, actionHistory);
+        double rheaSimilarity = computeActionPercentage(1, actionHistory);
 
-        if(mctsSimilarity<rehaSimilarity){
+        //MB: Similarity debugging
+        System.out.println("MCTSSimilarity: "+mctsSimilarity);
+        System.out.println("REHASimilarity: "+rheaSimilarity);
+        System.out.println("------------------------------");
+        //printActionDistributions(actionHistory);
+
+        if(mctsSimilarity<rheaSimilarity){
             return 1;
         } else {
             return 0;
         }
     }
 
+    // MB: We can choose whether to compute closeness of actions taken with Percentage or Similarity
+    // MB: Or choose to compare them as part of one of the experiments?
+
+    // MB: Percentage = Average % that the action taken in the history was taken in the strategy. Weighted by actions.
+    // MB: Similarity = Cossine Similarity (angle between) ActionDistribution of the same surroundings.
+    // Weighted by unique surroundings.
+
+    public double computeActionPercentage(Integer strategy, HashMap<Integer,ActionDistribution> actionHistory) {
+        HashMap<Integer, ActionDistribution> actionStrategy;
+        if(strategy == 0){
+            actionStrategy = actionDistributionsMCTS;
+        } else {
+            actionStrategy = actionDistributionsRHEA;
+        }
+        return computeActionSimilarity(actionStrategy, actionHistory);
+    }
+
+    public double computeActionPercentage(HashMap<Integer,ActionDistribution> actionStrategy, HashMap<Integer,ActionDistribution> actionHistory){
+        Iterator hmIterator = actionHistory.entrySet().iterator();
+        int N = 0;
+        double percentage = 0;
+
+        // MB: Need to iterate through the HashMap
+        while (hmIterator.hasNext()) {
+            Map.Entry element = (Map.Entry)hmIterator.next();
+            //MB: Pull out the surroundings and ActionDistribution
+            int surroundings = (int)element.getKey();
+            ActionDistribution actionsTaken = (ActionDistribution)element.getValue();
+
+            //MB: If surroundings don't exist in table, add a neutral similarity
+            if(!actionStrategy.containsKey(surroundings)){
+                percentage += 0.16;
+            } else{
+                //MB: How similar are the actions taken in this surroundings by the player compared to the strategy table?
+                percentage += percentageOfActions(actionStrategy.get(surroundings), actionsTaken);
+            }
+            N++;
+        }
+        //MB: Returns average pecentage, a number between 0 and 1
+        return percentage/N;
+    }
+
     public double computeActionSimilarity(Integer strategy, HashMap<Integer,ActionDistribution> actionHistory){
-        //MB: Given a strategy lookup index and surroundings:action distribution history, compute accuracy
-        //MB: actions is a surroundings ActionDistribution tuple
+        //MB: Given a strategy lookup index and surroundings:action distribution history, compute similarity
+        //MB: strategy = index of learnt table to look up, 0 =MCTS, 1=REHA
         //todo: Only call this function once every few ticks. I think it will be expensive..
         HashMap<Integer, ActionDistribution> actionStrategy;
         if(strategy == 0){
             actionStrategy = actionDistributionsMCTS;
         } else {
-            actionStrategy = actionDistributionsREHA;
+            actionStrategy = actionDistributionsRHEA;
         }
-
-        //MB: Go through each action, adding up the
-        //MB: actionHistory is all the surroundings:ActionDistribution
-        //MB: actionsTaken is the ActionDistribution for a specific surroundings
-        Iterator hmIterator = actionHistory.entrySet().iterator();
-        int N = 0;
-        double similarity = 0;
-
-        // MB: Need to iterate through the HashMap
-        while (hmIterator.hasNext()) {
-            Map.Entry element = (Map.Entry)hmIterator.next();
-            //MB: Pull out the surroundings and ActionDistribution
-            int surroundings = (int)element.getKey();
-            ActionDistribution actionsTaken = (ActionDistribution)element.getValue();
-            if(!actionStrategy.containsKey(surroundings)){
-                return 0;
-            }
-            //MB: How similar are the actions taken in this surroundings by the player compared to the strategy table?
-            similarity += percentageAction(actionStrategy.get(surroundings), actionsTaken);
-            N++;
-        }
-        return similarity/N;
+        return computeActionSimilarity(actionStrategy, actionHistory);
     }
 
     public double computeActionSimilarity(HashMap<Integer,ActionDistribution> actionStrategy, HashMap<Integer,ActionDistribution> actionHistory){
-        //MB: Given a strategy lookup index and surroundings:action distribution history, compute accuracy
-        //MB: actions is a surroundings ActionDistribution tuple
-        //todo: Only call this function once every few ticks. I think it will be expensive..
-
-        //MB: Go through each action, adding up the
-        //MB: actionHistory is all the surroundings:ActionDistribution
-        //MB: actionsTaken is the ActionDistribution for a specific surroundings
+        //MB: Uses cossine similarity
+        //MB: Unique surroundings are treated differently and each unique surrounding has equal weigt
+        //MB: actionStrategy = learnt table, actionHistory = observing what the enemy did
         Iterator hmIterator = actionHistory.entrySet().iterator();
         int N = 0;
         double similarity = 0;
@@ -180,21 +229,61 @@ public class GroupXutils {
             //MB: Pull out the surroundings and ActionDistribution
             int surroundings = (int)element.getKey();
             ActionDistribution actionsTaken = (ActionDistribution)element.getValue();
+
+            //MB: If surroundings don't exist in table, add a neutral similarity
             if(!actionStrategy.containsKey(surroundings)){
-                return 0;
+                similarity += 0.5;
+            } else {
+                similarity += similarityOfActions(actionStrategy.get(surroundings), actionsTaken);
             }
-            //MB: How similar are the actions taken in this surroundings by the player compared to the strategy table?
-            similarity += percentageAction(actionStrategy.get(surroundings), actionsTaken);
             N++;
         }
+        //MB: Returns average similarity, a number between 0 and 1
+        //MB: Note N here is number of unique surroundings in the enemies history
         return similarity/N;
     }
 
-    private HashMap<Integer, ActionDistribution> retrieveActionDistributions(String hashMapFilename){
+    public double similarityOfActions(ActionDistribution referenceActions, ActionDistribution takenActions){
+        // a is an ActionDistribution to compare to this one
+
+        // MB: compute cosine similarity defined as x.y / (||x|| ||y||). Bounded between 0 and 1.
+        // It's a measure of closeness between 2 vectors
+        double x = takenActions.magnitude();
+        double y = referenceActions.magnitude();
+        int dotproduct = 0;
+
+        for(int i=0; i<= 5; i++) {
+            dotproduct += takenActions.getActionCount(i) * referenceActions.getActionCount(i);
+        }
+        return dotproduct/(x*y);
+    }
+
+    private double percentageOfActions(ActionDistribution referenceActions, ActionDistribution takenActions){
+        //MB: Runs through each action in takenActions. Compute average % times the action that was taken was taken in
+        // the reference actions.
+        int NtakenAction = 0;
+        double sumPerc = 0;
+        double percReference = 0;
+
+        // Iterate through each actions
+        for(int i=0; i<= 5; i++) {
+            //MB: Compute percentage this was taken in reference
+            percReference = (double)referenceActions.getActionCount(i)/(double)referenceActions.sum();
+
+            //MB: This is the number of times action i was taken. So calculate % taken in reference and multiply by this
+             NtakenAction = takenActions.getActionCount(i);
+             sumPerc += NtakenAction * percReference;
+        }
+        //MB: Return average percentage times the action taken was taken by the reference
+        return sumPerc/takenActions.sum();
+    }
+
+    public HashMap<Integer, ActionDistribution> retrieveActionDistributions(String hashMapFilename){
 
         // TODO: Make sure when we submit our code, the learnt tables can be read.
         //  Shouldn't assume we can make folders. It should be in the same folder that the class is in
         if(!new File("./hashmaps/"+hashMapFilename).exists()){
+            System.out.println("Couldn't find trained table: "+hashMapFilename + " so return a blank one");
             return new HashMap<Integer, ActionDistribution>();
         }
 
@@ -202,7 +291,6 @@ public class GroupXutils {
         HashMap<Integer, ActionDistribution> map = null;
         try
         {
-            System.out.println(hashMapFilename);
             FileInputStream fis = new FileInputStream("./hashmaps/"+hashMapFilename);
             ObjectInputStream ois = new ObjectInputStream(fis);
             map = (HashMap) ois.readObject();
@@ -218,35 +306,26 @@ public class GroupXutils {
             c.printStackTrace();
             return null;
         }
-        System.out.println("Deserialized HashMap");
-        // Display content using Iterator
-//        Set set = map.entrySet();
-//        Iterator iterator = set.iterator();
-//        while(iterator.hasNext()) {
-//            Map.Entry mentry = (Map.Entry)iterator.next();
-//            System.out.print("key: "+ mentry.getKey() + " & Value: ");
-//            System.out.println(mentry.getValue());
-//        }
-
         return map;
     }
 
-    // MB: Compares two Action Distributions for their similarity
-    public double percentageAction(ActionDistribution referenceActions, ActionDistribution takenActions){
-        // a is an ActionDistribution to compare to this one
-
-        // MB: compute cosine similarity defined as x.y / (||x|| ||y||). Bounded between 0 and 1.
-        // It's a measure of closeness between 2 vectors
-        double x = takenActions.magnitude();
-        double y = referenceActions.magnitude();
-        int dotproduct = 0;
-        System.out.println("Strategy magnitude was:"+y);
-        System.out.println("History magnitude was:"+x);
-
-        for(int i=0; i<= 5; i++) {
-            dotproduct += takenActions.getActionCount(i) * referenceActions.getActionCount(i);
-            System.out.println("Dotproduct at iteration:"+i+" was "+ dotproduct);
+    public void saveActionDistributions(HashMap<Integer, ActionDistribution> actionDistributions, String f){
+        //If hashmap folder does not exist: make one.
+        File hashfolder = new File("./hashmaps/");
+        if (!hashfolder.exists()) {
+            new File ("./hashmaps/").mkdir();
+            System.out.println("Make hashmaps folder");
         }
-        return dotproduct/(x*y);
+
+        try {
+            FileOutputStream fos = new FileOutputStream("./hashmaps/"+f);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(actionDistributions);
+            oos.close();
+            fos.close();
+            System.out.printf("Training table "+f+ " was updated.");
+        }catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 }

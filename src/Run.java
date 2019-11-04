@@ -39,9 +39,9 @@ public class Run {
 
     public static void main(String[] args) {
         //default
-
+        //MB: Go to GroupXPlayer to update training. Training needs one GroupXPlayer to be in the game (8)
         if(args.length == 0)
-            args = new String[]{"0", "1", "2", "-1", "4", "4", "4", "4"};
+            args = new String[]{"0", "2", "2", "-1", "8", "5", "5", "5"};
 
         if(args.length != 8) {
             printHelp();
@@ -155,7 +155,10 @@ public class Run {
 
                         // XW: Can set params here if we wanted
                         GroupXParams groupXParams = new GroupXParams();
-
+                        groupXParams.stop_type = groupXParams.STOP_ITERATIONS;
+                        groupXParams.num_iterations = 400;
+                        groupXParams.rollout_depth = 15;
+                        groupXParams.heuristic_method = groupXParams.ADVANCED_HEURISTIC;
                         p = new GroupXPlayer(seed, playerID++,groupXParams, groupxutils);
                         playerStr[i-4] = "GroupX";
                         break;

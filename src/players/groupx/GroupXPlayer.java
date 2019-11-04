@@ -24,6 +24,12 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private Random m_rnd;
     public Types.ACTIONS[] actions;
     public GroupXParams params;
+    private HashMap<Integer, ActionDistribution> trainingActions;
+
+    //MB: IF YOU WANT TO TRAIN/NOT TRAIN, CHANGE THESE!!!!!!!!!!!!!!!
+    //MB: GroupXPlayer needs to be one of the agents (any position). All the rest need to be the Agent being trained.
+    private boolean TRAINING = false;
+    private String HASHMAPPATH = "hashMapRHEA";
 
     //XW: relevant functions/utils for this player
     public GroupXutils utilsX;
@@ -43,7 +49,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
     Types.TILETYPE[][] oldBoard;
 
     private HashMap<Integer, ActionDistribution> MCTS_TABLE;
-    private HashMap<Integer, ActionDistribution> REHA_TABLE;
+    private HashMap<Integer, ActionDistribution> RHEA_TABLE;
 
     /**
      begin{itemize}
@@ -67,6 +73,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
     public GroupXPlayer(long seed, int id, GroupXParams params, GroupXutils utils) {
         super(seed, id, params);
+        System.out.println("Group X for the win");
         reset(seed, id);
         this.utilsX = utils;
         ArrayList<Types.ACTIONS> actionsList = Types.ACTIONS.all();
@@ -75,7 +82,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
         for (Types.ACTIONS act : actionsList) {
             actions[i++] = act;
         }
-
         aliveEnemies = new ArrayList<Types.TILETYPE>();
         enemyPositions = new HashMap<Types.TILETYPE, Vector2d>();
         enemyActions = new HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>>();
@@ -86,6 +92,11 @@ public class GroupXPlayer extends ParameterizedPlayer {
         enemyStrategies.put(Types.TILETYPE.AGENT2, 0);
         enemyStrategies.put(Types.TILETYPE.AGENT3, 0);
 
+        //MB: If training,retrieve hash map
+        if(TRAINING) {
+            System.out.println("GroupXPlayer: Training mode, Will attempt to retrieve "+HASHMAPPATH + " to add to it.");
+            trainingActions = utilsX.retrieveActionDistributions(HASHMAPPATH);
+        }
     }
 
     @Override
@@ -126,42 +137,67 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
         // Go through each enemy, updating positions and actions
         for (Types.TILETYPE enemy : aliveEnemies) {
-            // MB: Update position
-            Vector2d newPosition = utilsX.findEnemyPosition(newBoard, enemy);
+            // MB: Update position: Using the previous position known method
+            Vector2d newPosition;
             if (!enemyPositions.containsKey(enemy)) {
-                enemyPositions.put(enemy, newPosition);
+                //MB: Slow find
+                enemyPositions.put(enemy, utilsX.findEnemyPosition(newBoard, enemy));
             }
             Vector2d oldPosition = enemyPositions.get(enemy);
+            newPosition = utilsX.findEnemyPosition(newBoard,enemy,oldPosition);
 
             // MB: Infer and update actions.
-            Types.ACTIONS action = utilsX.inferEnemyAction(oldPosition, newPosition, newBoard,
+            Types.ACTIONS enemyAction = utilsX.inferEnemyAction(oldPosition, newPosition, newBoard,
                     gs.getBombBlastStrength(), gs.getBombLife());
             int enemySurroundings = utilsX.getSurroundingsIndex(oldPosition, oldBoard);
 
             if (!enemyActions.containsKey(enemy)) {
                 enemyActions.put(enemy, new HashMap<Integer, ActionDistribution>());
             }
-
             if(!enemyActions.get(enemy).containsKey(enemySurroundings)) {
                 enemyActions.get(enemy).put(enemySurroundings,new ActionDistribution());
             }
             //MB: Update the Action Distribution with enemies old surroundings and the inferred action
-            enemyActions.get(enemy).get(enemySurroundings).updateActionCount(action);
+            enemyActions.get(enemy).get(enemySurroundings).updateActionCount(enemyAction);
             //MB: Update enemy position with the new position
             enemyPositions.put(enemy, newPosition);
             //MB: We are done with the old board, update it
             oldBoard = newBoard;
-            //MB: Debugging
-//            if(enemy == Types.TILETYPE.AGENT1) {
-//                System.out.println(enemy + " action from GroupXPlayer perspective was: " + action + " with surroundings: " +enemySurroundings);
-//                printActionDistributions(enemyActions.get(enemy));
-//                System.out.println("\n");
-//            }
 
-            //TODO: Seperate this out into a function and
+            // IF TRAINING
+            //MB: Determine position of the current Player. Based on ForwardModel class
+            if(TRAINING){
+                if(!trainingActions.containsKey(enemySurroundings)){
+                    trainingActions.put(enemySurroundings, new ActionDistribution());
+                }
+                trainingActions.get(enemySurroundings).updateActionCount(enemyAction);
+            }
+
+            /* MB: Old training method that was in Game, delete
+            playerPos = gameStateObservations[i].getPosition();
+            tileBoard = gameStateObservations[i].getBoard();
+            // Get the Surroundings representation of this players position
+            surroundingsIndex = getSurroundingsIndex(playerPos, tileBoard);
+            // If it is there, add to it. If it isn't
+            if (!actionDistributions.containsKey(surroundingsIndex)) {
+                actionDistributions.put(surroundingsIndex, new ActionDistribution());
+            }
+            actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
+            */
+            /*
+            //MB: Debugging of perspective
+            if(enemy == Types.TILETYPE.AGENT1) {
+               System.out.println(enemy + " action from GroupXPlayer perspective was: " + enemyAction + " with surroundings: " +enemySurroundings);
+               utilsX.printActionDistributions(enemyActions.get(enemy));
+               System.out.println("\n");
+            }
+             */
+
             //MB: Strategy switching assessment: Get integer of what strategy best fits this enemies actions
             //MB: 0 MCTS, 1 REHA
+            // MB: Change the metric used to compute similarity in strategySwitch.
             int bestFitStrategy = utilsX.strategySwitch(enemyActions.get(enemy));
+
             // MB: Update enemy strategy with the best fit one
             enemyStrategies.put(enemy,bestFitStrategy);
 
@@ -171,6 +207,15 @@ public class GroupXPlayer extends ParameterizedPlayer {
         int action = m_root.mostVisitedAction();
         //... and return it.
         return actions[action];
+    }
+
+    @Override
+    public void result(double reward) {
+        //MB: This should be called when everyone dies.
+        if(TRAINING) {
+            utilsX.saveActionDistributions(trainingActions, HASHMAPPATH);
+        }
+        super.result(reward);
     }
 
     @Override

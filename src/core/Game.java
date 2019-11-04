@@ -41,10 +41,6 @@ public class Game {
     // String that identifies this game (for logging purposes)
     private String gameIdStr;
 
-    //hashMapMCTS
-    //hashMapREHA
-    private String HASHMAPPATH ="hashMapREHA";
-    HashMap<Integer, ActionDistribution> actionDistributions = retrieveActionDistributions(HASHMAPPATH);
     // Log flags
     public static boolean LOG_GAME = false;
     public static boolean LOG_GAME_JSON = false; // If the game is being logged, should it be saved to json
@@ -64,7 +60,6 @@ public class Game {
         this.seed = seed;
         this.size = size;
         this.gameIdStr = gameIdStr;
-        System.out.println("Game class: This Run will retrieve, update and save the training map: "+HASHMAPPATH);
         reset(seed);
     }
 
@@ -323,10 +318,14 @@ public class Game {
         for (int i = 0; i < NUM_PLAYERS; i++) {
             Player p = players.get(i);
 
+
             // Check if this player is still playing
             if (gameStateObservations[i].winner() == Types.RESULT.INCOMPLETE) {
+
                 actions[i] = p.act(gameStateObservations[i]);
 
+                //MB: Previous method of storing: All the below needs to be shifted into the GroupXPlayer class.
+                /*
                 //MB: Determine position of the current Player. Based on ForwardModel class
                 playerPos = gameStateObservations[i].getPosition();
                 tileBoard = gameStateObservations[i].getBoard();
@@ -337,6 +336,9 @@ public class Game {
                     actionDistributions.put(surroundingsIndex, new ActionDistribution());
                 }
                 actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
+                 */
+
+                //MB: Debugging
                 //printActionDistribution(actionDistributions,surroundingsIndex);
                 //if(i == 1) { System.out.println("AGENT1 action that was actually taken was: " + actions[i] + " with surroundings " + surroundingsIndex); }
 
@@ -376,65 +378,7 @@ public class Game {
         }
     }
 
-    private void saveActionDistributions(HashMap<Integer, ActionDistribution> actionDistributions, String f){
 
-        //If hashmap folder does not exist: make one.
-        File hashfolder = new File("./hashmaps/");
-        if (!hashfolder.exists()) {
-            new File ("./hashmaps/").mkdir();
-            System.out.println("Made file");
-        }
-
-        try {
-            FileOutputStream fos = new FileOutputStream("./hashmaps/"+f);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(actionDistributions);
-            oos.close();
-            fos.close();
-            //System.out.printf("Serialized HashMap data is saved in ./hashmaps/ as "+f);
-        }catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
-
-    private HashMap<Integer, ActionDistribution> retrieveActionDistributions(String hashMapFilename){
-
-        // if hashmap of this filename not exists yet, make a empty one.
-        if(!new File("./hashmaps/"+hashMapFilename).exists()){
-            return new HashMap<Integer, ActionDistribution>();
-        }
-
-        // Retrieve the Serialized distributions from last run
-        HashMap<Integer, ActionDistribution> map = null;
-        try
-        {
-            FileInputStream fis = new FileInputStream("./hashmaps/"+hashMapFilename);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            map = (HashMap) ois.readObject();
-            ois.close();
-            fis.close();
-        }catch(IOException ioe)
-        {
-            ioe.printStackTrace();
-            return null;
-        }catch(ClassNotFoundException c)
-        {
-            System.out.println("Class not found");
-            c.printStackTrace();
-            return null;
-        }
-        System.out.println("Deserialized HashMap");
-        // Display content using Iterator
-        Set set = map.entrySet();
-        Iterator iterator = set.iterator();
-        while(iterator.hasNext()) {
-            Map.Entry mentry = (Map.Entry)iterator.next();
-//            System.out.print("key: "+ mentry.getKey() + " & Value: ");
-//            System.out.println(mentry.getValue());
-        }
-
-        return map;
-    }
 
     private void printActionDistribution(HashMap<Integer, ActionDistribution> countMap, int i) {
         System.out.println(i + ": " + countMap.get(i).toString());
@@ -549,8 +493,6 @@ public class Game {
             p.result(finalRewards[i]);
         }
 
-        saveActionDistributions(actionDistributions, HASHMAPPATH);
-
         if (LOGGING_STATISTICS)
             gs.model.saveEventsStatistics(gameIdStr, seed);
 
@@ -633,6 +575,7 @@ public class Game {
     /**
      * @return the current game state.
      */
+
     public GameState getGameState() {
         return gs;
     }
