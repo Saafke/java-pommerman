@@ -67,13 +67,13 @@ public class Test {
 
         //MB: Test the Strategy switcher function:
         HashMap<Integer, ActionDistribution> actionStrategy = new HashMap<Integer, ActionDistribution>();
-        actionStrategy.put(1111,new ActionDistribution(new int[]{3,0,5,0,0,2}));
-        actionStrategy.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+        actionStrategy.put(1111,new ActionDistribution(new int[]{1,0,1,0,0,1}));
+        //actionStrategy.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
 
         HashMap<Integer, ActionDistribution> actionHistory = new HashMap<Integer, ActionDistribution>();
-        actionHistory.put(1111,new ActionDistribution(new int[]{3,0,5,0,0,2}));
-        actionHistory.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
-
+        actionHistory.put(1111,new ActionDistribution(new int[]{2,0,2,0,0,2}));
+        //actionHistory.put(2222,new ActionDistribution(new int[]{10,0,0,0,0,0}));
+        System.out.println(actionStrategy.get(1111).magnitude());
         double similarity = utilsX.computeActionSimilarity(actionStrategy,actionHistory);
         System.out.println(similarity);
         /* Uncomment to run the replay of the previous game: */

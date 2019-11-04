@@ -62,7 +62,7 @@ public class ActionDistribution implements Serializable  {
         // Sum all elements in this ActionDistribution
         int sumThis=0;
         for (int i : actionCounts){
-            sumThis += i^2;
+            sumThis += Math.pow(i, 2);
         }
         return Math.sqrt(sumThis);
     }
