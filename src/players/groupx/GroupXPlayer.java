@@ -2,21 +2,14 @@ package players.groupx;
 
 import core.GameState;
 import players.Player;
-import players.mcts.MCTSPlayer;
-import players.mcts.SingleTreeNode;
 import players.optimisers.ParameterizedPlayer;
-import utils.ActionDistribution;
 import utils.ElapsedCpuTimer;
 import utils.Types;
 import utils.Vector2d;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import java.io.*;
-
-import java.util.*;
 
 //todo: Worried about time with all this crap that has been added...
 // do a test of how long the opponent evaluation/ strategy switching part is taking.
@@ -29,7 +22,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
     //MB: IF YOU WANT TO TRAIN/NOT TRAIN, CHANGE THESE!!!!!!!!!!!!!!!
     //MB: GroupXPlayer needs to be one of the agents (any position). All the rest need to be the Agent being trained.
     private boolean TRAINING = false;
-    private String HASHMAPPATH = "hashMapRHEA";
+    private String HASHMAPPATH = "hashMapMCTS.ser";
 
     //XW: relevant functions/utils for this player
     public GroupXutils utilsX;
@@ -118,17 +111,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
         ElapsedCpuTimer ect = new ElapsedCpuTimer();
         ect.setMaxTimeMillis(params.num_time);
 
-        // Number of actions available
-        int num_actions = actions.length;
-
-        // Root of the tree
-        GroupXSingleTreeNode m_root = new GroupXSingleTreeNode(params, utilsX, m_rnd, num_actions, actions);
-        m_root.setRootGameState(gs);
-
-        //Determine the action using MCTS...
-        //MB: We need to provide the enemy strategies to this function otherwise nodes can't see them.
-        m_root.mctsSearch(ect,enemyStrategies);
-
         //MB: Only retrieve and iterate over enemies that are alive.
         aliveEnemies = gs.getAliveEnemyIDs();
 
@@ -173,26 +155,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
                 trainingActions.get(enemySurroundings).updateActionCount(enemyAction);
             }
 
-            /* MB: Old training method that was in Game, delete
-            playerPos = gameStateObservations[i].getPosition();
-            tileBoard = gameStateObservations[i].getBoard();
-            // Get the Surroundings representation of this players position
-            surroundingsIndex = getSurroundingsIndex(playerPos, tileBoard);
-            // If it is there, add to it. If it isn't
-            if (!actionDistributions.containsKey(surroundingsIndex)) {
-                actionDistributions.put(surroundingsIndex, new ActionDistribution());
-            }
-            actionDistributions.get(surroundingsIndex).updateActionCount(actions[i]);
-            */
-            /*
-            //MB: Debugging of perspective
-            if(enemy == Types.TILETYPE.AGENT1) {
-               System.out.println(enemy + " action from GroupXPlayer perspective was: " + enemyAction + " with surroundings: " +enemySurroundings);
-               utilsX.printActionDistributions(enemyActions.get(enemy));
-               System.out.println("\n");
-            }
-             */
-
             //MB: Strategy switching assessment: Get integer of what strategy best fits this enemies actions
             //MB: 0 MCTS, 1 REHA
             // MB: Change the metric used to compute similarity in strategySwitch.
@@ -200,12 +162,24 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
             // MB: Update enemy strategy with the best fit one
             enemyStrategies.put(enemy,bestFitStrategy);
-
         }
+
+        // Run MCTS
+        // Number of actions available
+        int num_actions = actions.length;
+
+        // Root of the tree
+        GroupXSingleTreeNode m_root = new GroupXSingleTreeNode(params, utilsX, m_rnd, num_actions, actions);
+        m_root.setRootGameState(gs);
+
+        //Determine the action using MCTS...
+        //MB: We need to provide the enemy strategies to this function otherwise nodes can't see them.
+        m_root.mctsSearch(ect,enemyStrategies);
 
         //Determine the best action to take and return it.
         int action = m_root.mostVisitedAction();
         //... and return it.
+
         return actions[action];
     }
 

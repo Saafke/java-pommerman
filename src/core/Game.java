@@ -4,11 +4,9 @@ import objects.Avatar;
 import objects.GameObject;
 import players.Player;
 import players.SimonSaysPlayer;
+import players.groupx.ActionDistribution;
 import utils.*;
-import java.io.*;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 import static utils.Types.*;

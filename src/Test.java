@@ -3,17 +3,14 @@ import players.*;
 import players.groupx.GroupXParams;
 import players.groupx.GroupXPlayer;
 import players.groupx.GroupXutils;
-import utils.ActionDistribution;
 import utils.Types;
 import players.rhea.utils.Constants;
 import players.mcts.MCTSPlayer;
 import players.mcts.MCTSParams;
-import players.rhea.RHEAPlayer;
 import players.rhea.utils.RHEAParams;
-
+import players.rhea.RHEAPlayer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class Test {
 
@@ -37,13 +34,13 @@ public class Test {
         int playerID = Types.TILETYPE.AGENT0.getKey();
 
         MCTSParams mctsParams = new MCTSParams();
-        mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
+        mctsParams.stop_type = mctsParams.STOP_TIME;
         mctsParams.num_iterations = 400;
         mctsParams.rollout_depth = 15;
         mctsParams.heuristic_method = mctsParams.ADVANCED_HEURISTIC;
 
         GroupXParams groupxParams = new GroupXParams();
-        groupxParams.stop_type = groupxParams.STOP_ITERATIONS;
+        groupxParams.stop_type = groupxParams.STOP_TIME;
         groupxParams.heuristic_method = groupxParams.ADVANCED_HEURISTIC;
         groupxParams.num_iterations = 400;
         groupxParams.rollout_depth = 15;
@@ -59,8 +56,8 @@ public class Test {
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
         players.add(new MCTSPlayer(seed, playerID++, mctsParams));
-        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
-        //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
+        //players.add(new SimplePlayer(seed, playerID++));
+        //players.add(new SimplePlayer(seed, playerID++));
         //players.add(new RHEAPlayer(seed, playerID++, rheaParams));
 
 

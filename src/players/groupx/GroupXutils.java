@@ -1,5 +1,4 @@
 package players.groupx;
-import utils.ActionDistribution;
 import utils.Types;
 import utils.Vector2d;
 import java.util.HashMap;
@@ -18,8 +17,8 @@ public class GroupXutils {
 
     // MB: Constructor: Read the trained tables
     public GroupXutils(){
-        actionDistributionsRHEA = retrieveActionDistributions("hashMapRHEA");
-        actionDistributionsMCTS = retrieveActionDistributions("hashMapMCTS");
+        actionDistributionsRHEA = retrieveActionDistributions("hashMapRHEA.ser");
+        actionDistributionsMCTS = retrieveActionDistributions("hashMapMCTS.ser");
 
         if(actionDistributionsMCTS == null){
             System.out.println("Error: Serialised MCTS trained table was not read");

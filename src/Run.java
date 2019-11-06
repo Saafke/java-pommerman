@@ -41,7 +41,7 @@ public class Run {
         //default
         //MB: Go to GroupXPlayer to update training. Training needs one GroupXPlayer to be in the game (8)
         if(args.length == 0)
-            args = new String[]{"0", "2", "2", "-1", "8", "5", "5", "5"};
+            args = new String[]{"0", "2", "10", "-1", "8", "5", "5", "5"};
 
         if(args.length != 8) {
             printHelp();
@@ -98,7 +98,6 @@ public class Run {
                 int agentType = Integer.parseInt(args[i]);
                 Player p = null;
 
-
                 switch(agentType) {
                     case 0:
                         p = new DoNothingPlayer(playerID++);
@@ -119,16 +118,16 @@ public class Run {
                     case 4:
                         RHEAParams rheaParams = new RHEAParams();
                         rheaParams.budget_type = Constants.ITERATION_BUDGET;
-                        rheaParams.iteration_budget = 200;
+                        rheaParams.iteration_budget = 300;
                         rheaParams.individual_length = 12;
-                        rheaParams.heurisic_type = Constants.CUSTOM_HEURISTIC;
+                        rheaParams.heurisic_type = Constants.ADVANCED_HEURISTIC;
 
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
                         playerStr[i-4] = "RHEA";
                         break;
                     case 5:
                         MCTSParams mctsParams = new MCTSParams();
-                        mctsParams.stop_type = mctsParams.STOP_ITERATIONS;
+                        mctsParams.stop_type = mctsParams.STOP_TIME;
                         mctsParams.num_iterations = 400;
                         mctsParams.rollout_depth = 15;
                         mctsParams.heuristic_method = mctsParams.ADVANCED_HEURISTIC;
@@ -155,7 +154,7 @@ public class Run {
 
                         // XW: Can set params here if we wanted
                         GroupXParams groupXParams = new GroupXParams();
-                        groupXParams.stop_type = groupXParams.STOP_ITERATIONS;
+                        groupXParams.stop_type = groupXParams.STOP_TIME;
                         groupXParams.num_iterations = 400;
                         groupXParams.rollout_depth = 15;
                         groupXParams.heuristic_method = groupXParams.ADVANCED_HEURISTIC;

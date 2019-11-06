@@ -14,8 +14,8 @@ public class MCTSParams implements ParameterSet {
     public final double HUGE_NEGATIVE = -1000;
     public final double HUGE_POSITIVE =  1000;
 
-    public final int STOP_TIME = 0;
-    public final int STOP_ITERATIONS = 1;
+    public final int STOP_TIME = 1;
+    public final int STOP_ITERATIONS = 0;
     public final int STOP_FMCALLS = 2;
 
     public final int CUSTOM_HEURISTIC = 0;
