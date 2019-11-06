@@ -147,9 +147,9 @@ public class GroupXutils {
         double rheaSimilarity = computeActionPercentage(1, actionHistory);
 
         //MB: Similarity debugging
-        System.out.println("MCTSSimilarity: "+mctsSimilarity);
-        System.out.println("REHASimilarity: "+rheaSimilarity);
-        System.out.println("------------------------------");
+        //System.out.println("MCTSSimilarity: "+mctsSimilarity);
+        //System.out.println("REHASimilarity: "+rheaSimilarity);
+        //System.out.println("------------------------------");
         //printActionDistributions(actionHistory);
 
         if(mctsSimilarity<rheaSimilarity){

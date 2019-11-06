@@ -41,7 +41,7 @@ public class Run {
         //default
         //MB: Go to GroupXPlayer to update training. Training needs one GroupXPlayer to be in the game (8)
         if(args.length == 0)
-            args = new String[]{"0", "2", "10", "-1", "8", "5", "5", "5"};
+            args = new String[]{"0", "100", "2", "-1", "8", "5", "5", "5"};
 
         if(args.length != 8) {
             printHelp();
