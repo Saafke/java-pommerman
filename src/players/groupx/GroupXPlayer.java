@@ -252,7 +252,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         }
         tick = 0;
 
-        utilsX.printPredictionAccuracy(predictionAccuracy);
+        //utilsX.printPredictionAccuracy(predictionAccuracy);
         utilsX.savePredictionAccuracy(predictionAccuracy);
 
         super.result(reward);
