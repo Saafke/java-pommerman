@@ -31,6 +31,8 @@ public class GroupXSingleTreeNode
     private GameState rootState;
     private StateHeuristic rootStateHeuristic;
 
+    private double OPPONENT_MODEL_RANDOMNESS = 0.05;
+
     GroupXSingleTreeNode(GroupXParams p, GroupXutils utilsX, Random rnd, int num_actions, Types.ACTIONS[] actions) {
         this(p, utilsX, null, -1, rnd, num_actions, actions, 0, null);
     }
@@ -213,10 +215,14 @@ public class GroupXSingleTreeNode
                     }
                 }
 
+                //MB: Add randomness to offset some SurroundingsIndex having low volume: more training was needed
+                if(OPPONENT_MODEL_RANDOMNESS < m_rnd.nextDouble()){
+                    actionIdx = m_rnd.nextInt(gs.nActions());
+                }
+
                 actionsAll[i] = Types.ACTIONS.all().get(actionIdx);
             }
         }
-
         gs.next(actionsAll);
 
     }

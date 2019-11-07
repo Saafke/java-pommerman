@@ -34,14 +34,13 @@ public class Run {
         System.out.println("\t\t 6 Human Player (controls: cursor keys + space bar).");
         System.out.println("\t\t 7 Saaf Player");
         System.out.println("\t\t 8 GroupX");
-
     }
 
     public static void main(String[] args) {
         //default
         //MB: Go to GroupXPlayer to update training. Training needs one GroupXPlayer to be in the game (8)
         if(args.length == 0)
-            args = new String[]{"0", "100", "2", "-1", "8", "5", "5", "5"};
+            args = new String[]{"0", "10", "2", "-1", "8", "9", "4", "3"};
 
         if(args.length != 8) {
             printHelp();
@@ -121,7 +120,6 @@ public class Run {
                         rheaParams.iteration_budget = 300;
                         rheaParams.individual_length = 12;
                         rheaParams.heurisic_type = Constants.ADVANCED_HEURISTIC;
-
                         p = new RHEAPlayer(seed, playerID++, rheaParams);
                         playerStr[i-4] = "RHEA";
                         break;
@@ -160,6 +158,15 @@ public class Run {
                         groupXParams.heuristic_method = groupXParams.ADVANCED_HEURISTIC;
                         p = new GroupXPlayer(seed, playerID++,groupXParams, groupxutils);
                         playerStr[i-4] = "GroupX";
+                        break;
+                    case 9:
+                        MCTSParams mctsParams2 = new MCTSParams();
+                        mctsParams2.stop_type = mctsParams2.STOP_TIME;
+                        mctsParams2.num_time = 100;
+                        mctsParams2.rollout_depth = 10;
+                        mctsParams2.heuristic_method = mctsParams2.CUSTOM_HEURISTIC;
+                        p = new MCTSPlayer(seed, playerID++, mctsParams2);
+                        playerStr[i-4] = "MCTS2";
                         break;
                     default:
                         System.out.println("WARNING: Invalid agent ID: " + agentType );

@@ -32,7 +32,7 @@ public class MCTSParams implements ParameterSet {
     public int stop_type = STOP_TIME; //THIS MEANS IT WILL STOP AT THE ALLOTED TIME
     public int num_iterations = 1000; //200
     public int num_fmcalls = 2000; //2000
-    public int num_time = 40; //40
+    public int num_time = 100; //40
 
     @Override
     public void setParameterValue(String param, Object value) {
