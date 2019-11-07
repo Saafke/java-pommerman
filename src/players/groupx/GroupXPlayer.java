@@ -250,6 +250,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         if(TRAINING) {
             utilsX.saveActionDistributions(trainingActions, HASHMAPPATH);
         }
+        tick = 0;
 
         utilsX.printPredictionAccuracy(predictionAccuracy);
         utilsX.savePredictionAccuracy(predictionAccuracy);
