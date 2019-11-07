@@ -24,8 +24,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private boolean TRAINING = false;
     private String HASHMAPPATH = "hashMapMCTS.ser";
 
-    private double OPPONENT_MODEL_RANDOMNESS = 0.05;
-
     //XW: relevant functions/utils for this player
     public GroupXutils utilsX;
 
@@ -37,7 +35,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
     //MB: Store enemy action predictions to compare to next time (Opponent Modelling).
     private HashMap<Types.TILETYPE, Integer> enemyPredictedActions;
-    private int[][] enemyPredictionAccuracy = new int[3][900];
+    private String[][] predictionAccuracy = new String[3][900];
     private int tick = 0;
 
     //MB: Store enemy actions for each enemy
@@ -138,6 +136,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
             // MB: Infer and update actions.
             Types.ACTIONS enemyAction = utilsX.inferEnemyAction(oldPosition, newPosition, newBoard,
                     gs.getBombBlastStrength(), gs.getBombLife());
+
             int enemySurroundings = utilsX.getSurroundingsIndex(oldPosition, oldBoard);
 
             if (!enemyActions.containsKey(enemy)) {
@@ -150,8 +149,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
             enemyActions.get(enemy).get(enemySurroundings).updateActionCount(enemyAction);
             //MB: Update enemy position with the new position
             enemyPositions.put(enemy, newPosition);
-            //MB: We are done with the old board, update it
-            oldBoard = newBoard;
 
             //MB: RECORD TRAINING
             if(TRAINING){
@@ -165,16 +162,25 @@ public class GroupXPlayer extends ParameterizedPlayer {
             int bestFitStrategy = utilsX.strategySwitch(enemyActions.get(enemy));
             enemyStrategies.put(enemy,bestFitStrategy);
 
-
-
             //MB: OPPONENT MODELLING EXPERIMENT
 
             // Store prediction success 1 or 0
             int observedAction = enemyAction.getKey();
+            int randomObservation = utilsX.returnRandomObservation(enemySurroundings);
             if (!enemyPredictedActions.containsKey(enemy)) { enemyPredictedActions.put(enemy, 0); }
-            enemyPredictionAccuracy[enemy.getKey()-11][tick] = (observedAction == enemyPredictedActions.get(enemy)) ? 1:0;
 
-            /*Debugging
+            // Tick, surroundings, Predicted Action, RandomObservation, Observed Action, Success, ReferenceSuccess
+            predictionAccuracy[enemy.getKey()-11][tick] = tick+","+enemySurroundings+","+enemyPredictedActions.get(enemy)+","+randomObservation+","+observedAction+","
+                    + (observedAction == enemyPredictedActions.get(enemy) ? 1:0) + "," + (observedAction == randomObservation ? 1:0);
+
+            // Debugging: Surroundings
+            if(enemy == Types.TILETYPE.AGENT2) {
+                //System.out.println("Old position: "+oldPosition.toString());
+                //System.out.println("New position: "+newPosition.toString());
+                //System.out.println(enemySurroundings);
+            }
+
+            /*Debugging:
             if(enemy == Types.TILETYPE.AGENT1) {
                 System.out.println("Predicted: " + enemyPredictedActions.get(enemy));
                 System.out.println("Actual: " + observedAction);
@@ -192,26 +198,28 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
             // Predict opponents next action
             int predictedAction = 0;
+            double randomnessComponent = 1;
             if(enemyStrategies.get(enemy) == 0){
                 if(utilsX.actionDistributionsMCTS.containsKey(enemySurroundings)){
                     predictedAction = utilsX.actionDistributionsMCTS.get(enemySurroundings).sampleAction();
-                }else{
-                    predictedAction = m_rnd.nextInt(gs.nActions());
+                    randomnessComponent = Math.max(1/(double)utilsX.actionDistributionsMCTS.get(enemySurroundings).sum(),0);
                 }
             } else {
                 if(utilsX.actionDistributionsRHEA.containsKey(enemySurroundings)){
                     predictedAction = utilsX.actionDistributionsRHEA.get(enemySurroundings).sampleAction();
-                }else{
-                    predictedAction = m_rnd.nextInt(gs.nActions());
+                    randomnessComponent = Math.max(1/(double)utilsX.actionDistributionsRHEA.get(enemySurroundings).sum(),0);
                 }
             }
+
             //MB: Add randomness to offset some SurroundingsIndex having low volume: more training was needed
-            if(OPPONENT_MODEL_RANDOMNESS > m_rnd.nextDouble()){
+            if(randomnessComponent > m_rnd.nextDouble()){
                 predictedAction = m_rnd.nextInt(gs.nActions());
             }
-
             enemyPredictedActions.put(enemy,predictedAction);
         }
+
+        //MB: We are done with the old board, update it
+        oldBoard = newBoard;
 
         // Run MCTS
         // Number of actions available
@@ -240,7 +248,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
             utilsX.saveActionDistributions(trainingActions, HASHMAPPATH);
         }
 
-        utilsX.printPredictionAccuracy(enemyPredictionAccuracy);
+        utilsX.printPredictionAccuracy(predictionAccuracy);
 
         super.result(reward);
     }

@@ -1,9 +1,8 @@
 package players.groupx;
 import utils.Types;
 import utils.Vector2d;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+
+import java.util.*;
 import java.io.*;
 
 
@@ -14,6 +13,7 @@ public class GroupXutils {
 
     HashMap<Integer, ActionDistribution> actionDistributionsMCTS;
     HashMap<Integer, ActionDistribution> actionDistributionsRHEA;
+    Random rand = new Random();
 
     // MB: Constructor: Read the trained tables
     public GroupXutils(){
@@ -277,7 +277,24 @@ public class GroupXutils {
         return sumPerc/takenActions.sum();
     }
 
-    public void printPredictionAccuracy(int[][] accuracy){
+    public int returnRandomObservation(int surroundings){
+        // Return a random, BUT VALID observation given a surroundings (for fair comparison in opponent modelling experiment).
+        List<Integer> validObservations = new ArrayList<Integer>();
+        validObservations.add(0);
+
+        int surroundingsComponent = 0;
+        for(int i=0;i<=3;i++) {
+            // Only add if there is passage,bomb, power up or agent
+            surroundingsComponent = surroundings % 10;
+            if(surroundingsComponent == 1 || surroundingsComponent== 4 || surroundingsComponent== 6 || surroundingsComponent== 7) {
+                validObservations.add(i);
+            }
+            surroundings = surroundings/10;
+        }
+        return rand.nextInt(validObservations.size());
+    }
+
+    public void printPredictionAccuracy(String[][] accuracy){
         for (int i = 0; i<= 2; i++) {
             System.out.println("-------------------------------");
             System.out.println("-------------------------------");
