@@ -40,7 +40,7 @@ public class Run {
         //default
         //MB: Go to GroupXPlayer to update training. Training needs one GroupXPlayer to be in the game (8)
         if(args.length == 0)
-            args = new String[]{"0", "10", "2", "-1", "8", "9", "4", "3"};
+            args = new String[]{"0", "5", "2", "-1", "8", "4", "4", "4"};
 
         if(args.length != 8) {
             printHelp();
@@ -127,7 +127,7 @@ public class Run {
                         MCTSParams mctsParams = new MCTSParams();
                         mctsParams.stop_type = mctsParams.STOP_TIME;
                         mctsParams.num_iterations = 400;
-                        mctsParams.rollout_depth = 15;
+                        mctsParams.rollout_depth = 12;
                         mctsParams.heuristic_method = mctsParams.ADVANCED_HEURISTIC;
                         p = new MCTSPlayer(seed, playerID++, mctsParams);
                         playerStr[i-4] = "MCTS";

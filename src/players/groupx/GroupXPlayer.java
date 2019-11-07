@@ -36,6 +36,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
     //MB: Store enemy action predictions to compare to next time (Opponent Modelling).
     private HashMap<Types.TILETYPE, Integer> enemyPredictedActions;
     private String[][] predictionAccuracy = new String[3][900];
+
     private int tick = 0;
 
     //MB: Store enemy actions for each enemy
@@ -74,6 +75,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         System.out.println("Group X for the win");
         reset(seed, id);
         this.utilsX = utils;
+        tick = 0;
         ArrayList<Types.ACTIONS> actionsList = Types.ACTIONS.all();
         actions = new Types.ACTIONS[actionsList.size()];
         int i = 0;
@@ -103,6 +105,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         this.seed = seed;
         this.playerID = playerID;
         m_rnd = new Random(seed);
+        tick = 0;
 
         this.params = (GroupXParams) getParameters();
         if (this.params == null) {
@@ -169,8 +172,8 @@ public class GroupXPlayer extends ParameterizedPlayer {
             int randomObservation = utilsX.returnRandomObservation(enemySurroundings);
             if (!enemyPredictedActions.containsKey(enemy)) { enemyPredictedActions.put(enemy, 0); }
 
-            // Tick, surroundings, Predicted Action, RandomObservation, Observed Action, Success, ReferenceSuccess
-            predictionAccuracy[enemy.getKey()-11][tick] = tick+","+enemySurroundings+","+enemyPredictedActions.get(enemy)+","+randomObservation+","+observedAction+","
+            // Opponent, Tick, surroundings, Assumed Strategy, Predicted Action, RandomObservation, Observed Action, Success, ReferenceSuccess
+            predictionAccuracy[enemy.getKey()-11][tick] = (enemy.getKey()-11)+","+tick+","+enemySurroundings+","+enemyStrategies.get(enemy)+","+enemyPredictedActions.get(enemy)+","+randomObservation+","+observedAction+","
                     + (observedAction == enemyPredictedActions.get(enemy) ? 1:0) + "," + (observedAction == randomObservation ? 1:0);
 
             // Debugging: Surroundings
@@ -249,6 +252,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         }
 
         utilsX.printPredictionAccuracy(predictionAccuracy);
+        utilsX.savePredictionAccuracy(predictionAccuracy);
 
         super.result(reward);
     }

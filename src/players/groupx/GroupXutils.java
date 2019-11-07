@@ -286,7 +286,7 @@ public class GroupXutils {
         for(int i=0;i<=3;i++) {
             // Only add if there is passage,bomb, power up or agent
             surroundingsComponent = surroundings % 10;
-            if(surroundingsComponent == 1 || surroundingsComponent== 4 || surroundingsComponent== 6 || surroundingsComponent== 7) {
+            if(surroundingsComponent == 1 || surroundingsComponent== 4 || surroundingsComponent== 5 || surroundingsComponent== 6 || surroundingsComponent== 7) {
                 validObservations.add(i);
             }
             surroundings = surroundings/10;
@@ -295,12 +295,30 @@ public class GroupXutils {
     }
 
     public void printPredictionAccuracy(String[][] accuracy){
+        // Opponent
         for (int i = 0; i<= 2; i++) {
-            System.out.println("-------------------------------");
-            System.out.println("-------------------------------");
-            System.out.println("-------------------------------");
-            for (int j = 0; j<= 800; j++)
-            System.out.println(accuracy[i][j]);
+            for (int j = 0; j<= 800; j++) {
+                if(accuracy[i][j] != null) {
+                    System.out.println(accuracy[i][j]);
+                }
+            }
+        }
+    }
+
+    public void savePredictionAccuracy(String[][] accuracy){
+        try(FileWriter fw = new FileWriter("predictionAccuracy.txt", true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            PrintWriter out = new PrintWriter(bw))
+        {
+            for (int i = 0; i<= 2; i++) {
+                for (int j = 0; j<= 800; j++) {
+                    if(accuracy[i][j] != null) {
+                        out.println(accuracy[i][j]);
+                    }
+                }
+            }
+            out.close();
+        } catch (IOException e) {
         }
     }
 
