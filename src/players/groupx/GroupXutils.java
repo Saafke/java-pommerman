@@ -335,7 +335,7 @@ public class GroupXutils {
         HashMap<Integer, ActionDistribution> map = null;
         try
         {
-            FileInputStream fis = new FileInputStream("./hashmaps/"+hashMapFilename);
+            FileInputStream fis = new FileInputStream(hashMapFilename);
             ObjectInputStream ois = new ObjectInputStream(fis);
             map = (HashMap) ois.readObject();
             ois.close();

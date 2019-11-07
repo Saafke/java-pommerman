@@ -164,7 +164,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
             //MB: STRATEGY SWITCHING
             int bestFitStrategy = utilsX.strategySwitch(enemyActions.get(enemy));
             enemyStrategies.put(enemy,bestFitStrategy);
-
+            /*
             //MB: OPPONENT MODELLING EXPERIMENT
 
             // Store prediction success 1 or 0
@@ -253,7 +253,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         tick = 0;
 
         //utilsX.printPredictionAccuracy(predictionAccuracy);
-        utilsX.savePredictionAccuracy(predictionAccuracy);
+        //utilsX.savePredictionAccuracy(predictionAccuracy);
 
         super.result(reward);
     }
