@@ -24,7 +24,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private boolean TRAINING = false;
     private String HASHMAPPATH = "hashMapMCTS.ser";
 
-    private double OPPONENT_MODEL_RANDOMNESS = 0;
+    private double OPPONENT_MODEL_RANDOMNESS = 0.05;
 
     //XW: relevant functions/utils for this player
     public GroupXutils utilsX;
