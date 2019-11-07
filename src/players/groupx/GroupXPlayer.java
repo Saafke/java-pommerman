@@ -24,6 +24,8 @@ public class GroupXPlayer extends ParameterizedPlayer {
     private boolean TRAINING = false;
     private String HASHMAPPATH = "hashMapMCTS.ser";
 
+    private double OPPONENT_MODEL_RANDOMNESS = 0;
+
     //XW: relevant functions/utils for this player
     public GroupXutils utilsX;
 
@@ -33,7 +35,12 @@ public class GroupXPlayer extends ParameterizedPlayer {
     //MB: Store enemy positions like AGENT0: (120,60) AGENT1: (50, 60)
     private HashMap<Types.TILETYPE, Vector2d> enemyPositions;
 
-    //MB: Store enemy actions. Yes, we're storing a HashMap of Hashmaps, because we PROFESSIONALS
+    //MB: Store enemy action predictions to compare to next time (Opponent Modelling).
+    private HashMap<Types.TILETYPE, Integer> enemyPredictedActions;
+    private int[][] enemyPredictionAccuracy = new int[3][900];
+    private int tick = 0;
+
+    //MB: Store enemy actions for each enemy
     private HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>> enemyActions;
 
     //MB: Store the assumed enemy strategy. 0 = MCTS, 1 = REHA. Needs to be public so GroupX node can see it.
@@ -78,6 +85,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         aliveEnemies = new ArrayList<Types.TILETYPE>();
         enemyPositions = new HashMap<Types.TILETYPE, Vector2d>();
         enemyActions = new HashMap<Types.TILETYPE, HashMap<Integer, ActionDistribution>>();
+        enemyPredictedActions = new HashMap<Types.TILETYPE, Integer>();
         // Start off assuming MCTS. It's ok that this includes us, we'll never look us up.
         enemyStrategies = new HashMap<Types.TILETYPE, Integer>();
         enemyStrategies.put(Types.TILETYPE.AGENT0, 0);
@@ -107,7 +115,6 @@ public class GroupXPlayer extends ParameterizedPlayer {
 
     @Override
     public Types.ACTIONS act(GameState gs) {
-
         ElapsedCpuTimer ect = new ElapsedCpuTimer();
         ect.setMaxTimeMillis(params.num_time);
 
@@ -146,8 +153,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
             //MB: We are done with the old board, update it
             oldBoard = newBoard;
 
-            // IF TRAINING
-            //MB: Determine position of the current Player. Based on ForwardModel class
+            //MB: RECORD TRAINING
             if(TRAINING){
                 if(!trainingActions.containsKey(enemySurroundings)){
                     trainingActions.put(enemySurroundings, new ActionDistribution());
@@ -155,20 +161,63 @@ public class GroupXPlayer extends ParameterizedPlayer {
                 trainingActions.get(enemySurroundings).updateActionCount(enemyAction);
             }
 
-            //MB: Strategy switching assessment: Get integer of what strategy best fits this enemies actions
-            //MB: 0 MCTS, 1 REHA
-            // MB: Change the metric used to compute similarity in strategySwitch.
+            //MB: STRATEGY SWITCHING
             int bestFitStrategy = utilsX.strategySwitch(enemyActions.get(enemy));
-
-            // MB: Update enemy strategy with the best fit one
             enemyStrategies.put(enemy,bestFitStrategy);
+
+
+
+            //MB: OPPONENT MODELLING EXPERIMENT
+
+            // Store prediction success 1 or 0
+            int observedAction = enemyAction.getKey();
+            if (!enemyPredictedActions.containsKey(enemy)) { enemyPredictedActions.put(enemy, 0); }
+            enemyPredictionAccuracy[enemy.getKey()-11][tick] = (observedAction == enemyPredictedActions.get(enemy)) ? 1:0;
+
+            /*Debugging
+            if(enemy == Types.TILETYPE.AGENT1) {
+                System.out.println("Predicted: " + enemyPredictedActions.get(enemy));
+                System.out.println("Actual: " + observedAction);
+                if (enemyStrategies.get(enemy) == 0) {
+                    if (utilsX.actionDistributionsMCTS.containsKey(enemySurroundings)) {
+                        System.out.println(enemySurroundings + utilsX.actionDistributionsMCTS.get(enemySurroundings).toString());
+                    }
+                } else {
+                    if (utilsX.actionDistributionsRHEA.containsKey(enemySurroundings)) {
+                        System.out.println(enemySurroundings + utilsX.actionDistributionsRHEA.get(enemySurroundings).toString());
+                    }
+                }
+            }
+            */
+
+            // Predict opponents next action
+            int predictedAction = 0;
+            if(enemyStrategies.get(enemy) == 0){
+                if(utilsX.actionDistributionsMCTS.containsKey(enemySurroundings)){
+                    predictedAction = utilsX.actionDistributionsMCTS.get(enemySurroundings).sampleAction();
+                }else{
+                    predictedAction = m_rnd.nextInt(gs.nActions());
+                }
+            } else {
+                if(utilsX.actionDistributionsRHEA.containsKey(enemySurroundings)){
+                    predictedAction = utilsX.actionDistributionsRHEA.get(enemySurroundings).sampleAction();
+                }else{
+                    predictedAction = m_rnd.nextInt(gs.nActions());
+                }
+            }
+            //MB: Add randomness to offset some SurroundingsIndex having low volume: more training was needed
+            if(OPPONENT_MODEL_RANDOMNESS > m_rnd.nextDouble()){
+                predictedAction = m_rnd.nextInt(gs.nActions());
+            }
+
+            enemyPredictedActions.put(enemy,predictedAction);
         }
 
         // Run MCTS
         // Number of actions available
         int num_actions = actions.length;
 
-        // Root of the tree
+        // Root of the tr
         GroupXSingleTreeNode m_root = new GroupXSingleTreeNode(params, utilsX, m_rnd, num_actions, actions);
         m_root.setRootGameState(gs);
 
@@ -180,6 +229,7 @@ public class GroupXPlayer extends ParameterizedPlayer {
         int action = m_root.mostVisitedAction();
         //... and return it.
 
+        tick++;
         return actions[action];
     }
 
@@ -189,6 +239,9 @@ public class GroupXPlayer extends ParameterizedPlayer {
         if(TRAINING) {
             utilsX.saveActionDistributions(trainingActions, HASHMAPPATH);
         }
+
+        utilsX.printPredictionAccuracy(enemyPredictionAccuracy);
+
         super.result(reward);
     }
 

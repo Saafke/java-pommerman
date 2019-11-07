@@ -216,7 +216,7 @@ public class GroupXSingleTreeNode
                 }
 
                 //MB: Add randomness to offset some SurroundingsIndex having low volume: more training was needed
-                if(OPPONENT_MODEL_RANDOMNESS < m_rnd.nextDouble()){
+                if(OPPONENT_MODEL_RANDOMNESS > m_rnd.nextDouble()){
                     actionIdx = m_rnd.nextInt(gs.nActions());
                 }
 
